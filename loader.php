@@ -310,11 +310,14 @@ class BP_Groups_Taxo_Loader {
 		$mofile_local  = $this->lang_dir . $mofile;
 		$mofile_global = WP_LANG_DIR . '/bp-groups-taxo/' . $mofile;
 
-		// Look in global /wp-content/languages/buddyplug folder
+		// Look in global /wp-content/languages/bp-groups-taxo folder
 		load_textdomain( $this->domain, $mofile_global );
 
-		// Look in local /wp-content/plugins/buddyplug/languages/ folder
+		// Look in local /wp-content/plugins/bp-groups-taxo/languages/ folder
 		load_textdomain( $this->domain, $mofile_local );
+
+		// Look in global /wp-content/languages/plugins/
+		load_plugin_textdomain( $this->domain );
 	}
 	
 }
