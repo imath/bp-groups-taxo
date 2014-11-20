@@ -95,6 +95,7 @@ class BP_Groups_Terms {
 
 	/**
 	 * Update term count
+	 * Hidden groups mustn't be in the taxonomy count
 	 * 
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
@@ -102,8 +103,42 @@ class BP_Groups_Terms {
 	 */
 	public static function update_term_count( $terms, $taxonomy = 'bp_group_tags' ) {
 		global $wpdb;
+		$bp = buddypress();
+
 		self::set_tables();
-		_update_generic_term_count( $terms, $taxonomy );
+
+		$object_types = (array) $taxonomy->object_type;
+
+		if ( false === array_search( 'bp_group', $object_types ) ) {
+			_update_generic_term_count( $terms, $taxonomy );
+		} else {
+			$other_type = array_diff( $object_types, array( 'bp_group' ) );
+
+			$sql_get = array(
+				'select' => "SELECT COUNT(*) FROM {$wpdb->term_relationships} tr, {$bp->groups->table_name} g",
+				'where' => array(
+					'join'   => 'g.id = tr.object_id',
+					'status' => $wpdb->prepare( 'g.status != %s', 'hidden' ),
+				)
+			);
+
+			// Update term count for group tags
+			foreach ( (array) $terms as $term ) {
+				$count = 0;
+
+				$sql_get['where']['term_taxo_id'] = $wpdb->prepare(  'term_taxonomy_id = %d', $term );
+
+				$count += (int) $wpdb->get_var( $sql_get['select'] . ' WHERE ' . join( ' AND ', $sql_get['where'] ) );
+
+				$wpdb->update( $wpdb->term_taxonomy, compact( 'count' ), array( 'term_taxonomy_id' => $term ) );
+			}
+
+			// If somebody use this taxonomy, he'll have to handle the term count
+			if ( ! empty( $other_type ) ) {
+				do_action( 'bp_groups_taxo_terms_update_count', $terms, $taxonomy );
+			}
+		}
+
 		self::reset_tables();
 	}
 

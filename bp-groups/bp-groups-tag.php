@@ -291,10 +291,10 @@ class BP_Groups_Tag {
 			)
 		);
 
-		$hide_hidden = ( ! is_super_admin() || $user_id != bp_loggedin_user_id() );
+		$hide_hidden = ( ! is_super_admin() && $user_id != bp_loggedin_user_id() );
 
 		if ( ! empty( $hide_hidden ) ) {
-			$sql['where']['status'] = $wpdb->prepare( 'g.status = %s', $user_id, 'hidden' );
+			$sql['where']['status'] = $wpdb->prepare( 'g.status != %s', 'hidden' );
 		}
 
 		$where = 'WHERE ' . join( ' AND ', $sql['where'] );
