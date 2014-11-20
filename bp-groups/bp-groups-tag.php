@@ -154,9 +154,15 @@ class BP_Groups_Tag {
 	 * @since BP Groups Taxo (1.0.0)
 	 */
 	public function is_group_tag() {
+		global $wp_query;
+
 		if ( empty( $this->term ) ) {
 			return;
 		}
+
+		// Avoid WP_Query notices by resetting the queried object
+		$wp_query->queried_object    = null; 
+		$wp_query->queried_object_id = 0;
 
 		bp_update_is_directory( true, 'groups' );
 
@@ -275,7 +281,26 @@ class BP_Groups_Tag {
 			return array();
 		}
 
-		return $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT m.group_id FROM {$bp->groups->table_name_members} m, {$bp->groups->table_name} g WHERE m.group_id = g.id AND g.status != 'hidden' AND m.user_id = %d AND m.is_confirmed = 1 AND m.is_banned = 0", $user_id ) );
+		$sql = array(
+			'select' => "SELECT DISTINCT m.group_id FROM {$bp->groups->table_name_members} m, {$bp->groups->table_name} g",
+			'where'  => array(
+				'join'      => 'm.group_id = g.id',
+				'user'      => $wpdb->prepare( 'm.user_id = %d', $user_id ),
+				'confirmed' => 'm.is_confirmed = 1',
+				'banned'    => 'm.is_banned = 0',
+			)
+		);
+
+		$hide_hidden = ( ! is_super_admin() || $user_id != bp_loggedin_user_id() );
+
+		if ( ! empty( $hide_hidden ) ) {
+			$sql['where']['status'] = $wpdb->prepare( 'g.status = %s', $user_id, 'hidden' );
+		}
+
+		$where = 'WHERE ' . join( ' AND ', $sql['where'] );
+		$sql_col = $sql['select'] . ' ' . $where;
+
+		return $wpdb->get_col( apply_filters( 'bp_groups_tags_get_user_groups_sql', $sql_col, $sql ) );
 	}
 
 	/**
