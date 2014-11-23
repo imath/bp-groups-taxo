@@ -56,17 +56,18 @@ class BP_Groups_Tag {
 	 */
 	private function setup_hooks() {
 		// Actions
-		add_action( 'bp_enqueue_scripts',                          array( $this, 'enqueue_cssjs'        )    );
-		add_action( 'bp_actions',                                  array( $this, 'groups_directory'     ), 1 );
-		add_action( 'bp_setup_theme_compat',                       array( $this, 'is_group_tag'         )    );
-		add_action( 'bp_directory_groups_item',                    array( $this, 'append_tags'          )    );
-		add_action( 'bp_before_group_header_meta',                 array( $this, 'append_tags'          )    );
-		add_action( 'bp_before_directory_groups_content',          array( $this, 'tag_infos'            )    );
-		add_action( 'bp_after_group_details_creation_step',        array( $this, 'tag_editor'           )    );
-		add_action( 'bp_after_group_details_admin',                array( $this, 'tag_editor'           )    );
-		add_action( 'groups_create_group_step_save_group-details', array( $this, 'set_group_tags'       )    );
-		add_action( 'groups_group_details_edited',                 array( $this, 'set_group_tags'       ), 1 );
-		add_action( 'groups_delete_group',                         array( $this, 'remove_relationships' ), 1 );
+		add_action( 'bp_enqueue_scripts',                          array( $this, 'enqueue_cssjs'            )    );
+		add_action( 'bp_actions',                                  array( $this, 'groups_directory'         ), 1 );
+		add_action( 'bp_setup_theme_compat',                       array( $this, 'is_group_tag'             )    );
+		add_action( 'bp_directory_groups_item',                    array( $this, 'append_tags'              )    );
+		add_action( 'bp_before_group_header_meta',                 array( $this, 'append_tags'              )    );
+		add_action( 'bp_before_directory_groups_content',          array( $this, 'tag_infos'                )    );
+		add_action( 'bp_after_group_details_creation_step',        array( $this, 'tag_editor'               )    );
+		add_action( 'bp_after_group_details_admin',                array( $this, 'tag_editor'               )    );
+		add_action( 'groups_create_group_step_save_group-details', array( $this, 'set_group_tags'           )    );
+		add_action( 'groups_group_details_edited',                 array( $this, 'set_group_tags'           ), 1 );
+		add_action( 'groups_group_settings_edited',                array( $this, 'group_changed_visibility' ), 1 );
+		add_action( 'groups_delete_group',                         array( $this, 'remove_relationships'     ), 1 );
 
 		// Filters
 		add_filter( 'bp_ajax_querystring',                array( $this, 'ajax_querystring'           ), 10, 2 );
@@ -79,7 +80,7 @@ class BP_Groups_Tag {
 
 	/**
 	 * Enqueue needed script/css
-	 * 
+	 *
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
 	 */
@@ -87,7 +88,7 @@ class BP_Groups_Tag {
 		$css_args = apply_filters( 'bp_groups_taxo_front_css', array(
 			'handle'  => 'bp-groups-taxo-style',
 			'src'     => $this->css_url . 'bp-groups-taxo.css',
-			'deps'    => array( 'dashicons' ), 
+			'deps'    => array( 'dashicons' ),
 			'version' => bp_groups_taxo_loader()->version,
 		) );
 
@@ -95,16 +96,16 @@ class BP_Groups_Tag {
 		if ( empty( $css_args ) ) {
 			return;
 		}
-		
+
 		wp_enqueue_style( $css_args['handle'], $css_args['src'], $css_args['deps'], $css_args['version'] );
 	}
 
 	/**
 	 * Handle Ajax requests
-	 *	
+	 *
 	 * Hook to bp_ajax_querystring to make sure the tag action
 	 * is set.
-	 * 
+	 *
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
 	 */
@@ -122,7 +123,7 @@ class BP_Groups_Tag {
 
 	/**
 	 * Set the tag action to be a directory one
-	 * 
+	 *
 	 * BP Default & standalone themes.
 	 *
 	 * @access public
@@ -147,7 +148,7 @@ class BP_Groups_Tag {
 
 	/**
 	 * Set the tag action to be a directory one
-	 * 
+	 *
 	 * BP Theme Compat themes.
 	 *
 	 * @access public
@@ -161,7 +162,7 @@ class BP_Groups_Tag {
 		}
 
 		// Avoid WP_Query notices by resetting the queried object
-		$wp_query->queried_object    = null; 
+		$wp_query->queried_object    = null;
 		$wp_query->queried_object_id = 0;
 
 		bp_update_is_directory( true, 'groups' );
@@ -210,7 +211,7 @@ class BP_Groups_Tag {
 
 			$sql_parts['from'] .= implode( ',', $this->tax_query['from'] ). ', ';
 			$sql_parts['where'] .= ' AND ' . implode( ' AND ', $this->tax_query['where'] );
-			
+
 			$query = join( ' ', (array) $sql_parts );
 		}
 		return $query;
@@ -226,7 +227,7 @@ class BP_Groups_Tag {
 		if ( ! empty( $this->term ) && ! empty( $this->tax_query ) ) {
 			$sql_parts['select'] .= ', ' . implode( ',', $this->tax_query['from'] );
 			$sql_parts['where'] = array_merge( $sql_parts['where'], $this->tax_query['where'] );
-			
+
 			if ( ! empty( $sql_parts['where'] ) ) {
 				$query = $sql_parts['select'] . " WHERE " . join( ' AND ', (array) $sql_parts['where'] );
 			}
@@ -368,7 +369,10 @@ class BP_Groups_Tag {
 		}
 
 		$output  = '<div class="tag-infos">';
-		$output .= '<h4>' . sprintf( esc_html__( 'You are browing Groups tagged : %s', 'bp-groups-taxo' ), $this->term->name ) . '</h4>';
+		$output .= '<h4>';
+		$output .= sprintf( esc_html__( 'You are browing Groups tagged : %s', 'bp-groups-taxo' ), $this->term->name ) ;
+		$output .= '<a href="' . bp_get_groups_directory_permalink() . '" title="' . esc_html__( 'Show all Groups', 'bp-groups-taxo' ) . '" class="show-allgroups"></a>';
+		$output .= '</h4>';
 
 		if ( ! empty( $this->term->description ) ) {
 			$output .= '<p>' . esc_html( $this->term->description ) . '</p>';
@@ -430,6 +434,19 @@ class BP_Groups_Tag {
 		$output = '';
 
 		if ( empty( $terms ) ) {
+			// Display some feedbacks to admin so that they set tags more easily
+			if ( is_admin() ) {
+				$admin_tags_link = add_query_arg( 'page', 'bp-group-tags', bp_get_admin_url( 'admin.php' ) );
+				?>
+				<p>
+					<?php printf(
+						esc_html__( 'No tags have been set, you can define tags from the %s', 'bp-groups-taxo' ),
+						'<a href="' . $admin_tags_link . '">' . esc_html__( 'Group Tags Administration', 'bp-groups-taxo' ) . '</a>'
+					); ?>
+				</p>
+				<?php
+			}
+
 			return $output;
 		}
 
@@ -505,7 +522,7 @@ class BP_Groups_Tag {
 		if ( ! empty( $_POST['_group_previous_tags'] ) ) {
 			$previous_term_ids = wp_parse_id_list( $_POST['_group_previous_tags'] );
 		}
-		
+
 		if ( empty( $term_ids ) && empty( $previous_term_ids ) ) {
 			return false;
 		}
@@ -520,10 +537,30 @@ class BP_Groups_Tag {
 	}
 
 	/**
+	 * Update term count if a group changed its visibility
+	 *
+	 * @access public
+	 * @since BP Groups Taxo (1.0.0)
+	 */
+	public function group_changed_visibility( $group_id = 0 ) {
+		if ( empty( $group_id ) ) {
+			$group_id = bp_get_current_group_id();
+		}
+
+		// We need to update term count in case an hidden group changed its visibility and vice versa
+		$group_terms = BP_Groups_Terms::get_object_terms( $group_id );
+		$terms = wp_list_pluck( $group_terms, 'term_id');
+
+		if ( ! empty( $terms ) ) {
+			BP_Groups_Terms::update_term_count( $terms );
+		}
+	}
+
+	/**
 	 * Remove all group relationships
 	 *
 	 * In case a group is deleted.
-	 * 
+	 *
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
 	 */

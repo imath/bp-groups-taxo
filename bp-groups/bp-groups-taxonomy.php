@@ -15,7 +15,7 @@ class BP_Groups_Terms {
 
 	/**
 	 * Start the class
-	 * 
+	 *
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
 	 * @static
@@ -32,7 +32,7 @@ class BP_Groups_Terms {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
 	 */
@@ -42,7 +42,7 @@ class BP_Groups_Terms {
 
 	/**
 	 * Set globals
-	 * 
+	 *
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
 	 */
@@ -62,10 +62,10 @@ class BP_Groups_Terms {
 
 	/**
 	 * Set needed $wpdb->tables to be the one of root blog id
-	 * 
+	 *
 	 * This is needed for Multisite configs in case a groups tag
 	 * loop is build from a child blog.
-	 * 
+	 *
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
 	 * @static
@@ -74,13 +74,13 @@ class BP_Groups_Terms {
 		global $wpdb;
 
 		$wpdb->term_taxonomy      = self::$bp_term_taxonomy;
-		$wpdb->term_relationships = self::$bp_term_relationships; 
+		$wpdb->term_relationships = self::$bp_term_relationships;
 		$wpdb->terms              = self::$bp_terms;
 	}
 
 	/**
 	 * Reset $wpdb->tables to the one set by WordPress
-	 * 
+	 *
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
 	 * @static
@@ -89,14 +89,14 @@ class BP_Groups_Terms {
 		global $wpdb;
 
 		$wpdb->term_taxonomy      = self::$wp_term_taxonomy;
-		$wpdb->term_relationships = self::$wp_term_relationships; 
+		$wpdb->term_relationships = self::$wp_term_relationships;
 		$wpdb->terms              = self::$wp_terms;
 	}
 
 	/**
 	 * Update term count
 	 * Hidden groups mustn't be in the taxonomy count
-	 * 
+	 *
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
 	 * @static
@@ -106,6 +106,14 @@ class BP_Groups_Terms {
 		$bp = buddypress();
 
 		self::set_tables();
+
+		if ( ! is_object( $taxonomy ) ) {
+			$taxonomy = get_taxonomy( $taxonomy );
+		}
+
+		if ( empty( $taxonomy ) ) {
+			return;
+		}
 
 		$object_types = (array) $taxonomy->object_type;
 
@@ -144,11 +152,11 @@ class BP_Groups_Terms {
 
 	/**
 	 * Get group tags
-	 * 
+	 *
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
 	 * @static
-	 * 
+	 *
 	 * @uses wp_get_object_terms()
 	 */
 	public static function get_object_terms( $object_ids, $taxonomies = 'bp_group_tags', $args = array() ) {
@@ -161,11 +169,11 @@ class BP_Groups_Terms {
 
 	/**
 	 * Set group tags
-	 * 
+	 *
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
 	 * @static
-	 * 
+	 *
 	 * @uses wp_set_object_terms()
 	 */
 	public static function set_object_terms( $object_id, $terms, $taxonomy = 'bp_group_tags', $append = false ) {
@@ -177,12 +185,44 @@ class BP_Groups_Terms {
 	}
 
 	/**
-	 * Remove group tags
-	 * 
+	 * Insert a term based on arguments provided.
+	 *
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
 	 * @static
-	 * 
+	 *
+	 * @uses wp_insert_term()
+	 */
+	public static function insert_term( $term, $taxonomy, $args = array() ) {
+		self::set_tables();
+		$return = wp_insert_term( $term, $taxonomy, $args );
+		self::reset_tables();
+		return $return;
+	}
+
+	/**
+	 * Update term based on arguments provided.
+	 *
+	 * @access public
+	 * @since BP Groups Taxo (1.0.0)
+	 * @static
+	 *
+	 * @uses wp_update_term()
+	 */
+	public static function update_term( $term_id, $taxonomy, $args = array() ) {
+		self::set_tables();
+		$return = wp_update_term( $term_id, $taxonomy, $args );
+		self::reset_tables();
+		return $return;
+	}
+
+	/**
+	 * Remove group tags
+	 *
+	 * @access public
+	 * @since BP Groups Taxo (1.0.0)
+	 * @static
+	 *
 	 * @uses wp_remove_object_terms()
 	 */
 	public static function remove_object_terms( $object_id, $terms, $taxonomy = 'bp_group_tags' ) {
@@ -195,11 +235,11 @@ class BP_Groups_Terms {
 
 	/**
 	 * Remove all group relationships
-	 * 
+	 *
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
 	 * @static
-	 * 
+	 *
 	 * @uses wp_delete_object_term_relationships()
 	 */
 	public static function delete_object_term_relationships( $object_id, $taxonomies = 'bp_group_tags' ) {
@@ -211,12 +251,28 @@ class BP_Groups_Terms {
 	}
 
 	/**
-	 * Get group ids for a given tag
-	 * 
+	 * Delete term based on arguments provided.
+	 *
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
 	 * @static
-	 * 
+	 *
+	 * @uses wp_delete_term()
+	 */
+	public static function delete_term( $term_id, $taxonomy, $args = array() ) {
+		self::set_tables();
+		$return = wp_delete_term( $term_id, $taxonomy, $args );
+		self::reset_tables();
+		return $return;
+	}
+
+	/**
+	 * Get group ids for a given tag
+	 *
+	 * @access public
+	 * @since BP Groups Taxo (1.0.0)
+	 * @static
+	 *
 	 * @uses get_objects_in_term()
 	 */
 	public static function get_objects_in_term( $term_ids, $taxonomies = 'bp_group_tags', $args = array() ) {
@@ -228,12 +284,28 @@ class BP_Groups_Terms {
 	}
 
 	/**
-	 * Get all terms for a given taxonomy
-	 * 
+	 * Get all Term data from database by Term ID
+	 *
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
 	 * @static
-	 * 
+	 *
+	 * @uses get_term()
+	 */
+	public static function get_term( $term, $taxonomy, $output = OBJECT, $filter = 'raw' ) {
+		self::set_tables();
+		$return = get_term( $term, $taxonomy, $output, $filter );
+		self::reset_tables();
+		return $return;
+	}
+
+	/**
+	 * Get all terms for a given taxonomy
+	 *
+	 * @access public
+	 * @since BP Groups Taxo (1.0.0)
+	 * @static
+	 *
 	 * @uses get_terms()
 	 */
 	public static function get_terms( $taxonomies = 'bp_group_tags', $args = '' ) {
@@ -246,11 +318,11 @@ class BP_Groups_Terms {
 
 	/**
 	 * Get term thanks to a specific field
-	 * 
+	 *
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
 	 * @static
-	 * 
+	 *
 	 * @uses get_term_by()
 	 */
 	public static function get_term_by( $field, $value, $taxonomy = 'bp_group_tags', $output = OBJECT, $filter = 'raw' ) {
@@ -263,11 +335,11 @@ class BP_Groups_Terms {
 
 	/**
 	 * Get the term link
-	 * 
+	 *
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
 	 * @static
-	 * 
+	 *
 	 * @uses get_term_link()
 	 */
 	public static function get_term_link( $term, $taxonomy = 'bp_group_tags' ) {
@@ -281,16 +353,16 @@ class BP_Groups_Terms {
 	/**
 	 * Copy WordPress get_the_term_list without using get_the_terms()
 	 * function as it checks for an existing post.
-	 * 
+	 *
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
 	 * @static
-	 * 
+	 *
 	 * @uses self::get_object_terms()
 	 * @uses self::get_term_link()
 	 */
 	public static function get_the_term_list( $group_id, $taxonomy = 'bp_group_tags', $before = '', $sep = '', $after = '' ) {
-		
+
 		$terms = self::get_object_terms( $group_id, $taxonomy );
 
 		if ( is_wp_error( $terms ) )

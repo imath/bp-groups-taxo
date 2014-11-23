@@ -1,12 +1,30 @@
 #buddypress .tag-infos {
 	float:left;
-	max-width:60%;
-	margin-bottom:5px;
-	padding-top:25px;
+	max-width:55%;
+	padding: 1px 12px;
+	background-color: #fff;
+	-webkit-box-shadow: 0 1px 1px 1px rgba(0,0,0,0.1);
+	box-shadow: 0 1px 1px 1px rgba(0,0,0,0.1);
+ 	margin: 10px 0 20px;
+ 	padding: 10px;
+ 	border-left: 4px solid #555;
+}
+
+#buddypress .tag-infos p {
+	margin:0;
 }
 
 #buddypress .tag-infos h4 {
 	margin:0;
+}
+
+#buddypress .tag-infos a.show-allgroups {
+	display: inline-block;
+	margin-right:0;
+	float:right;
+	width:20px;
+	text-decoration: none;
+	border: none;
 }
 
 #buddypress ul.item-list li ul.group-tags {
@@ -45,7 +63,8 @@
 }
 
 #buddypress ul.item-list li ul.group-tags li a:before,
-#buddypress #item-header-content ul.group-tags li a:before {
+#buddypress #item-header-content ul.group-tags li a:before,
+#buddypress .tag-infos a.show-allgroups:before {
 	display: inline-block;
 	width: 18px;
 	height: 18px;
@@ -63,6 +82,10 @@
 	-moz-osx-font-smoothing: grayscale;
 	content:"\f323";
 	margin-right:5px;
+}
+
+#buddypress .tag-infos a.show-allgroups:before {
+	content: "\f158";
 }
 
 body.edit-details #buddypress .inside input[type="checkbox"],

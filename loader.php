@@ -11,8 +11,8 @@
  * @buddypress-plugin
  * Plugin Name:       BP Groups Taxo
  * Plugin URI:        http://imathi.eu/2014/06/02/bp-groups-taxo/
- * Description:       Use WordPress built-in taxonomy to add tags to BuddyPress groups 
- * Version:           1.0.0-beta
+ * Description:       Use WordPress built-in taxonomy to add tags to BuddyPress groups
+ * Version:           1.0.0-beta2
  * Author:            imath
  * Author URI:        http://imathi.eu
  * Text Domain:       bp-groups-taxo
@@ -54,7 +54,7 @@ class BP_Groups_Taxo_Loader {
 
 	/**
 	 * Initialize the plugin
-	 * 
+	 *
 	 * @package BP Groups Taxo
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
@@ -86,14 +86,14 @@ class BP_Groups_Taxo_Loader {
 
 	/**
 	 * Sets some globals for the plugin
-	 * 
+	 *
 	 * @package BP Groups Taxo
 	 * @access private
 	 * @since BP Groups Taxo (1.0.0)
 	 */
 	private function setup_globals() {
 		/** BP Groups Taxo globals ********************************************/
-		$this->version                = '1.0.0-beta';
+		$this->version                = '1.0.0-beta2';
 		$this->domain                 = 'bp-groups-taxo';
 		$this->file                   = __FILE__;
 		$this->basename               = plugin_basename( $this->file );
@@ -111,7 +111,7 @@ class BP_Groups_Taxo_Loader {
 
 	/**
 	 * Checks BuddyPress version
-	 * 
+	 *
 	 * @package BP Groups Taxo
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
@@ -126,7 +126,7 @@ class BP_Groups_Taxo_Loader {
 
 	/**
 	 * Checks if current blog is the one where BuddyPress is activated
-	 * 
+	 *
 	 * @package BP Groups Taxo
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
@@ -138,13 +138,13 @@ class BP_Groups_Taxo_Loader {
 
 		if ( get_current_blog_id() != bp_get_root_blog_id() )
 			return false;
-		
+
 		return true;
 	}
 
 	/**
 	 * Checks if current blog is the one where BuddyPress is activated
-	 * 
+	 *
 	 * @package BP Groups Taxo
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
@@ -163,10 +163,10 @@ class BP_Groups_Taxo_Loader {
 
 		$check = array( buddypress()->basename, $this->basename );
 		$network_active = array_diff( $check, array_keys( $network_plugins ) );
-		
+
 		if ( count( $network_active ) == 1 )
 			$config['network_status'] = false;
-		
+
 		$config['network_active'] = isset( $network_plugins[ $this->basename ] );
 
 		return $config;
@@ -174,7 +174,7 @@ class BP_Groups_Taxo_Loader {
 
 	/**
 	 * Includes the needed file
-	 * 
+	 *
 	 * @package BP Groups Taxo
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
@@ -192,7 +192,7 @@ class BP_Groups_Taxo_Loader {
 
 	/**
 	 * Sets the key hooks to add an action or a filter to
-	 * 
+	 *
 	 * @package BP Groups Taxo
 	 * @access private
 	 * @since BP Groups Taxo (1.0.0)
@@ -219,7 +219,7 @@ class BP_Groups_Taxo_Loader {
 
 	/**
 	 * Regiter the taxonomy
-	 * 
+	 *
 	 * @package BP Groups Taxo
 	 * @access private
 	 * @since BP Groups Taxo (1.0.0)
@@ -248,7 +248,7 @@ class BP_Groups_Taxo_Loader {
 			'show_admin_column'     => false,
 			'query_var'             => false,
 			'show_tagcloud'         => true,
-			'rewrite'               => array( 'slug' => $group_slug . '/tag' ),
+			'rewrite'               => array( 'slug' => $group_slug . '/tag', 'with_front' => false ),
 			'update_count_callback' => array( 'BP_Groups_Terms', 'update_term_count' ),
 		);
 
@@ -262,7 +262,7 @@ class BP_Groups_Taxo_Loader {
 
 	/**
 	 * Display a message to admin in case config is not as expected
-	 * 
+	 *
 	 * @package BP Groups Taxo
 	 * @since 1.0.0
 	 */
@@ -297,7 +297,7 @@ class BP_Groups_Taxo_Loader {
 	 *
 	 * @package BP Groups Taxo
 	 * @since 1.0.0
-	 * 
+	 *
 	 * @uses get_locale() to get the language of WordPress config
 	 * @uses load_texdomain() to load the translation if any is available for the language
 	 */
@@ -319,7 +319,7 @@ class BP_Groups_Taxo_Loader {
 		// Look in global /wp-content/languages/plugins/
 		load_plugin_textdomain( $this->domain );
 	}
-	
+
 }
 endif;
 
