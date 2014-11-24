@@ -370,7 +370,7 @@ class BP_Groups_Tag {
 
 		$output  = '<div class="tag-infos">';
 		$output .= '<h4>';
-		$output .= sprintf( esc_html__( 'You are browing Groups tagged : %s', 'bp-groups-taxo' ), $this->term->name ) ;
+		$output .= sprintf( esc_html__( 'You are browsing Groups tagged : %s', 'bp-groups-taxo' ), $this->term->name ) ;
 		$output .= '<a href="' . bp_get_groups_directory_permalink() . '" title="' . esc_html__( 'Show all Groups', 'bp-groups-taxo' ) . '" class="show-allgroups"></a>';
 		$output .= '</h4>';
 
