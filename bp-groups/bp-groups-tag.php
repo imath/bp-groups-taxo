@@ -43,8 +43,8 @@ class BP_Groups_Tag {
 	 * @since BP Groups Taxo (1.0.0)
 	 */
 	private function setup_globals() {
-		$this->css_url = bp_groups_taxo_loader()->plugin_css;
-		$this->term = 0;
+		$this->css_url   = bp_groups_taxo_loader()->plugin_css;
+		$this->term      = 0;
 		$this->tax_query = array();
 	}
 
@@ -55,12 +55,15 @@ class BP_Groups_Tag {
 	 * @since BP Groups Taxo (1.0.0)
 	 */
 	private function setup_hooks() {
+		// Get plugin params
+		$params = bp_groups_taxo_loader()->params;
+
 		// Actions
 		add_action( 'bp_enqueue_scripts',                          array( $this, 'enqueue_cssjs'            )    );
 		add_action( 'bp_actions',                                  array( $this, 'groups_directory'         ), 1 );
 		add_action( 'bp_setup_theme_compat',                       array( $this, 'is_group_tag'             )    );
-		add_action( 'bp_directory_groups_item',                    array( $this, 'append_tags'              )    );
-		add_action( 'bp_before_group_header_meta',                 array( $this, 'append_tags'              )    );
+		add_action( $params['directory_hook'],                     array( $this, 'append_tags'              )    );
+		add_action( $params['group_hook'],                         array( $this, 'append_tags'              )    );
 		add_action( 'bp_before_directory_groups_content',          array( $this, 'tag_infos'                )    );
 		add_action( 'bp_after_group_details_creation_step',        array( $this, 'tag_editor'               )    );
 		add_action( 'bp_after_group_details_admin',                array( $this, 'tag_editor'               )    );
@@ -351,7 +354,7 @@ class BP_Groups_Tag {
 		}
 
 		$tag_list  = '<ul class="group-tags">';
-		$tag_list .= BP_Groups_Terms::get_the_term_list( $group_id, 'bp_group_tags', '<li>', '</li><li>', '</li>' );
+		$tag_list .= BP_Groups_Terms::get_the_term_list( $group_id, 'bp_group_tags', '<li>', '</li><li>', '</li>', bp_groups_taxo_loader()->params['taglink_description'] );
 		$tag_list .= '</ul>';
 
 		echo apply_filters( 'bp_groups_taxo_append_tags', $tag_list, $group_id );

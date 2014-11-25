@@ -361,21 +361,35 @@ class BP_Groups_Terms {
 	 * @uses self::get_object_terms()
 	 * @uses self::get_term_link()
 	 */
-	public static function get_the_term_list( $group_id, $taxonomy = 'bp_group_tags', $before = '', $sep = '', $after = '' ) {
+	public static function get_the_term_list( $group_id, $taxonomy = 'bp_group_tags', $before = '', $sep = '', $after = '', $description = 0 ) {
 
 		$terms = self::get_object_terms( $group_id, $taxonomy );
 
-		if ( is_wp_error( $terms ) )
+		if ( is_wp_error( $terms ) ) {
 			return $terms;
+		}
 
-		if ( empty( $terms ) )
+		if ( empty( $terms ) ) {
 			return false;
+		}
 
 		foreach ( $terms as $term ) {
+			// make sure to reset at each pass
+			$term_link = array();
+
 			$link = self::get_term_link( $term, $taxonomy );
-			if ( is_wp_error( $link ) )
+
+			if ( is_wp_error( $link ) ) {
 				return $link;
-			$term_links[] = '<a href="' . esc_url( $link ) . '" rel="tag">' . $term->name . '</a>';
+			}
+
+			$term_link[] = 'href = "' . esc_url( $link ) . '"';
+
+			if ( ! empty( $description ) ) {
+				$term_link[] = 'title="' . esc_attr( wp_trim_words( $term->description, (int) $description ) ) . '"';
+			}
+			
+			$term_links[] = '<a ' . join( ' ', $term_link ) . ' rel="tag">' . esc_html( $term->name ) . '</a>';
 		}
 
 		$term_links = apply_filters( "term_links-$taxonomy", $term_links );

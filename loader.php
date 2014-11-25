@@ -53,6 +53,16 @@ class BP_Groups_Taxo_Loader {
 	public static $bp_version_required = '2.0';
 
 	/**
+	 * Some params to customize the plugin
+	 *
+	 * @package BP Groups Taxo
+	 * @since   BP Groups Taxo (1.0.0)
+	 *
+	 * @var      array
+	 */
+	public $params;
+
+	/**
 	 * Initialize the plugin
 	 *
 	 * @package BP Groups Taxo
@@ -104,6 +114,7 @@ class BP_Groups_Taxo_Loader {
 		$this->includes_url           = trailingslashit( $this->plugin_url . 'bp-groups' );
 		$this->plugin_js              = trailingslashit( $this->includes_url . 'js'  );
 		$this->plugin_css             = trailingslashit( $this->includes_url . 'css' );
+		$this->params                 = $this->set_params();
 
 		/** BuddyPress & BP Groups Taxo configs **********************************/
 		$this->config = $this->network_check();
@@ -255,6 +266,31 @@ class BP_Groups_Taxo_Loader {
 		register_taxonomy( 'bp_group_tags', array( 'bp_group' ), $args );
 	}
 
+	/**
+	 * Allow people to edit some params
+	 * 
+	 * @package BP Groups Taxo
+	 * @since 1.0.0
+	 * 
+	 * @uses apply_filters() call 'bp_group_tags_params' to override defaults with customs
+	 * @uses bp_parse_args()
+	 */ 
+	public function set_params() {
+		$customs = apply_filters( 'bp_group_tags_params', array() );
+
+		return bp_parse_args( $customs, array(
+			'taglink_description' => 0, // 0 no description in the title attribute, else number of words to keep
+			'directory_hook'      => 'bp_directory_groups_item',
+			'group_hook'          => 'bp_before_group_header_meta',
+		) );
+	}
+
+	/**
+	 * Make sure the "tag" slug will not be use by a group
+	 *
+	 * @package BP Groups Taxo
+	 * @since 1.0.0
+	 */
 	public function restrict_slug( $groups_forbidden_names = array() ) {
 		$groups_forbidden_names[] = 'tag';
 		return $groups_forbidden_names;
