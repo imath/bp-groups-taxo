@@ -353,8 +353,14 @@ class BP_Groups_Tag {
 			return;
 		}
 
+		$tag_links = BP_Groups_Terms::get_the_term_list( $group_id, 'bp_group_tags', '<li>', '</li><li>', '</li>', bp_groups_taxo_loader()->params['taglink_description'] );
+		
+		if ( empty( $tag_links ) ) {
+			return;
+		}
+
 		$tag_list  = '<ul class="group-tags">';
-		$tag_list .= BP_Groups_Terms::get_the_term_list( $group_id, 'bp_group_tags', '<li>', '</li><li>', '</li>', bp_groups_taxo_loader()->params['taglink_description'] );
+		$tag_list .= $tag_links;
 		$tag_list .= '</ul>';
 
 		echo apply_filters( 'bp_groups_taxo_append_tags', $tag_list, $group_id );
