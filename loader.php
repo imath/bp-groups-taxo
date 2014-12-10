@@ -43,7 +43,7 @@ class BP_Groups_Taxo_Loader {
 	protected static $instance = null;
 
 	/**
-	 * Some init vars
+	 * Required BuddyPress version
 	 *
 	 * @package BP Groups Taxo
 	 * @since   BP Groups Taxo (1.0.0)
@@ -51,6 +51,17 @@ class BP_Groups_Taxo_Loader {
 	 * @var      string
 	 */
 	public static $bp_version_required = '2.0';
+
+	/**
+	 * Version which fixed the ticket (#4017)
+	 *
+	 * @package BP Groups Taxo
+	 * @since   BP Groups Taxo (1.0.0)
+	 * @see https://buddypress.trac.wordpress.org/ticket/4017
+	 *
+	 * @var      string
+	 */
+	public static $bp_version_fixed = '';
 
 	/**
 	 * Some params to customize the plugin
@@ -129,10 +140,17 @@ class BP_Groups_Taxo_Loader {
 	 */
 	public function version_check() {
 		// taking no risk
-		if ( ! defined( 'BP_VERSION' ) )
+		if ( ! defined( 'BP_VERSION' ) ) {
 			return false;
+		}
 
-		return version_compare( BP_VERSION, self::$bp_version_required, '>=' );
+		$return = version_compare( BP_VERSION, self::$bp_version_required, '>=' );
+
+		if ( ! empty( self::$bp_version_fixed ) && version_compare( BP_VERSION, self::$bp_version_fixed, '>=' ) ) {
+			$return = false;
+		}
+
+		return $return;
 	}
 
 	/**
@@ -305,7 +323,7 @@ class BP_Groups_Taxo_Loader {
 	public function admin_warning() {
 		$warnings = array();
 
-		if( ! $this->version_check() ) {
+		if ( ! $this->version_check() ) {
 			$warnings[] = sprintf( __( 'BP Groups Taxo requires at least version %s of BuddyPress.', 'bp-groups-taxo' ), self::$bp_version_required );
 		}
 
