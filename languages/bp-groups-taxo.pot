@@ -1,10 +1,10 @@
-# Copyright (C) 2014 
-# This file is distributed under the same license as the  package.
+# Copyright (C) 2014 BP Groups Taxo
+# This file is distributed under the same license as the BP Groups Taxo package.
 msgid ""
 msgstr ""
-"Project-Id-Version:  \n"
-"Report-Msgid-Bugs-To: http://wordpress.org/tag/bp-groups-taxo\n"
-"POT-Creation-Date: 2014-06-02 21:12:02+00:00\n"
+"Project-Id-Version: BP Groups Taxo 1.0.0-beta2\n"
+"Report-Msgid-Bugs-To: http://wordpress.org/support/plugin/bp-groups-taxo\n"
+"POT-Creation-Date: 2014-12-11 09:04:15+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -12,61 +12,133 @@ msgstr ""
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 
-#: bp-groups/bp-groups-admin.php:91
+#: bp-groups/bp-groups-admin.php:97
 msgctxt "admin page title"
 msgid "Group Tags"
 msgstr ""
 
-#: bp-groups/bp-groups-admin.php:92
+#: bp-groups/bp-groups-admin.php:98
 msgctxt "admin menu title"
 msgid "Group Tags"
 msgstr ""
 
-#: bp-groups/bp-groups-admin.php:119
+#: bp-groups/bp-groups-admin.php:146
 msgid "Groups"
 msgstr ""
 
-#: bp-groups/bp-groups-admin.php:160
+#: bp-groups/bp-groups-admin.php:162
+msgid "Group Tag added."
+msgstr ""
+
+#: bp-groups/bp-groups-admin.php:163
+msgid "Group Tag deleted."
+msgstr ""
+
+#: bp-groups/bp-groups-admin.php:164
+msgid "Group Tag updated."
+msgstr ""
+
+#: bp-groups/bp-groups-admin.php:165
+msgid "Group Tag not added."
+msgstr ""
+
+#: bp-groups/bp-groups-admin.php:166
+msgid "Group Tag not updated."
+msgstr ""
+
+#: bp-groups/bp-groups-admin.php:167
+msgid "Group Tags deleted."
+msgstr ""
+
+#: bp-groups/bp-groups-admin.php:204
+msgid "Cheatin&#8217; uh?"
+msgstr ""
+
+#: bp-groups/bp-groups-admin.php:227
+msgid "Invalid taxonomy"
+msgstr ""
+
+#: bp-groups/bp-groups-admin.php:297
+msgid "You attempted to edit an item that doesn&#8217;t exist. Perhaps it was deleted?"
+msgstr ""
+
+#: bp-groups/bp-groups-admin.php:345
 msgid "Group Tags"
 msgstr ""
 
-#: bp-groups/bp-groups-admin.php:180
+#: bp-groups/bp-groups-admin.php:371
 msgctxt "group tags admin edit screen"
 msgid "Manage Tags"
 msgstr ""
 
-#: bp-groups/bp-groups-tag.php:346
-msgid "You are browing Groups tagged : %s"
+#: bp-groups/bp-groups-admin.php:454
+msgctxt "Group Tags term delete link"
+msgid "Delete"
 msgstr ""
 
-#: bp-groups/bp-groups-tag.php:378
+#: bp-groups/bp-groups-tag.php:382
+msgid "You are browsing Groups tagged : %s"
+msgstr ""
+
+#: bp-groups/bp-groups-tag.php:383
+msgid "Show all Groups"
+msgstr ""
+
+#: bp-groups/bp-groups-tag.php:416
 msgid "%d Group"
 msgid_plural "%d Groups"
 msgstr[0] ""
 msgstr[1] ""
 
-#: bp-groups/bp-groups-tag.php:412
+#: bp-groups/bp-groups-tag.php:452
+msgid "No tags have been set, you can define tags from the %s"
+msgstr ""
+
+#: bp-groups/bp-groups-tag.php:453
+msgid "Group Tags Administration"
+msgstr ""
+
+#: bp-groups/bp-groups-tag.php:463
 msgid "Select the tag(s) of your choice."
 msgstr ""
 
-#: loader.php:233
+#: loader.php:262
 msgctxt "taxonomy general name"
 msgid "Group Tags"
 msgstr ""
 
-#: loader.php:234
+#: loader.php:263
 msgctxt "taxonomy singular name"
 msgid "Group Tag"
 msgstr ""
 
-#: loader.php:273
+#: loader.php:327
 msgid "BP Groups Taxo requires at least version %s of BuddyPress."
 msgstr ""
 
-#: loader.php:277
+#: loader.php:331
 msgid "BP Groups Taxo requires to be activated on the blog where BuddyPress is activated."
 msgstr ""
 
-#: loader.php:281
+#: loader.php:335
 msgid "BP Groups Taxo and BuddyPress need to share the same network configuration."
+msgstr ""
+#. Plugin Name of the plugin/theme
+msgid "BP Groups Taxo"
+msgstr ""
+
+#. Plugin URI of the plugin/theme
+msgid "http://imathi.eu/2014/06/02/bp-groups-taxo/"
+msgstr ""
+
+#. Description of the plugin/theme
+msgid "Use WordPress built-in taxonomy to add tags to BuddyPress groups"
+msgstr ""
+
+#. Author of the plugin/theme
+msgid "imath"
+msgstr ""
+
+#. Author URI of the plugin/theme
+msgid "http://imathi.eu"
 msgstr ""
