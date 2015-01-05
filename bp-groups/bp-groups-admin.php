@@ -137,6 +137,10 @@ class BP_Groups_Tag_Admin {
 	function register_post_type() {
 		global $wp_post_types;
 
+		if ( empty( $_GET['page'] ) || 'bp-group-tags' != $_GET['page'] ) {
+			return;
+		}
+
 		$post_type = 'bp_group';
 
 		// Set needed properties
