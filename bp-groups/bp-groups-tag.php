@@ -73,12 +73,13 @@ class BP_Groups_Tag {
 		add_action( 'groups_delete_group',                         array( $this, 'remove_relationships'     ), 1 );
 
 		// Filters
-		add_filter( 'bp_ajax_querystring',                array( $this, 'ajax_querystring'           ), 10, 2 );
-		add_filter( 'bp_groups_get_paged_groups_sql',     array( $this, 'parse_select'               ), 10, 3 );
-		add_filter( 'bp_groups_get_total_groups_sql',     array( $this, 'parse_total'                ), 10, 3 );
-		add_filter( 'bp_get_total_group_count',           array( $this, 'total_group_count'          ), 10, 1 );
-		add_filter( 'bp_get_total_group_count_for_user',  array( $this, 'total_group_count_for_user' ), 10, 2 );
-		add_filter( 'widget_tag_cloud_args',              array( $this, 'tag_cloud_args'             ), 10, 1 );
+		add_filter( 'bp_ajax_querystring',                      array( $this, 'ajax_querystring'           ), 10, 2 );
+		add_filter( 'bp_groups_get_paged_groups_sql',           array( $this, 'parse_select'               ), 10, 3 );
+		add_filter( 'bp_groups_get_total_groups_sql',           array( $this, 'parse_total'                ), 10, 3 );
+		add_filter( 'bp_get_total_group_count',                 array( $this, 'total_group_count'          ), 10, 1 );
+		add_filter( 'bp_get_total_group_count_for_user',        array( $this, 'total_group_count_for_user' ), 10, 2 );
+		add_filter( 'widget_tag_cloud_args',                    array( $this, 'tag_cloud_args'             ), 10, 1 );
+		add_filter( 'bp_template_hierarchy_groups_single_item', array( $this, 'single_template_hierarchy'  ), 10, 1 );
 	}
 
 	/**
@@ -354,7 +355,7 @@ class BP_Groups_Tag {
 		}
 
 		$tag_links = BP_Groups_Terms::get_the_term_list( $group_id, 'bp_group_tags', '<li>', '</li><li>', '</li>', bp_groups_taxo_loader()->params['taglink_description'] );
-		
+
 		if ( empty( $tag_links ) ) {
 			return;
 		}
@@ -575,6 +576,33 @@ class BP_Groups_Tag {
 	 */
 	public function remove_relationships( $group_id = 0 ) {
 		BP_Groups_Terms::delete_object_term_relationships( $group_id );
+	}
+
+	/**
+	 * Add a entry to the template hierarchy for group tags
+	 *
+	 * @see https://codex.buddypress.org/themes/theme-compatibility-1-7/template-hierarchy/#single-group-pages
+	 * for some explanations about BuddyPress Template Hierarchy
+	 *
+	 * @access public
+	 * @since BP Groups Taxo (1.0.0)
+	 */
+	public function single_template_hierarchy( $templates = array() ) {
+		$terms = BP_Groups_Terms::get_object_terms( bp_get_current_group_id(), 'bp_group_tags', array( 'orderby' => 'term_id' ) );
+
+		if ( empty( $terms ) ) {
+			return $templates;
+		}
+
+		$slugs = array_map( 'sanitize_file_name', wp_list_pluck( $terms, 'slug' ) );
+
+		// The new template will take each tag in its name.
+		$new_template = 'groups/single/index-tag-' . join( '-', $slugs ) . '.php';
+
+		// Make sure index.php is at the last position
+		$index = array_pop( $templates );
+
+		return array_merge( $templates, array( $new_template, $index ) );
 	}
 }
 
