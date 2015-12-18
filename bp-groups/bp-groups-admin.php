@@ -326,7 +326,7 @@ class BP_Groups_Tag_Admin {
 			) );
 		}
 
-
+		global $wp_http_referer;
 		require_once( ABSPATH . 'wp-admin/edit-tags.php' );
 		exit();
 	}
