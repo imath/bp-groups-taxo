@@ -273,7 +273,8 @@ class BP_Groups_Taxo_Loader {
 		$args = array(
 			'hierarchical'          => false,
 			'labels'                => $labels,
-			'show_ui'               => false,
+			'show_ui'               => true,
+			'show_in_menu'          => false,
 			'show_admin_column'     => false,
 			'query_var'             => false,
 			'show_tagcloud'         => true,
