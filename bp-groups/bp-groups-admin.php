@@ -117,9 +117,16 @@ class BP_Groups_Tag_Admin {
 	 * @param WP_Screen $current_screen
 	 */
 	function set_current_screen( $current_screen = OBJECT ) {
+		global $page_hook;
 
-		if ( empty( $this->admin_screen ) || $this->admin_screen != $current_screen->id ) {
+		if ( empty( $this->admin_screen ) || false === strpos( $this->admin_screen, $current_screen->id ) ) {
 			return;
+		}
+
+		if ( $current_screen->id !== $this->admin_screen && is_null( $page_hook ) ) {
+			$current_screen->id   = $this->admin_screen;
+			$current_screen->base = $this->admin_screen;
+			$page_hook            = $this->admin_screen;
 		}
 
 		$current_screen->post_type = 'bp_group';
