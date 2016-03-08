@@ -214,6 +214,8 @@ class BP_Groups_Tag_Admin {
 	 * @global $wp_post_types
 	 */
 	public function admin_tags_load() {
+		global $wp_http_referer;
+
 		$cheating = __( 'Cheatin&#8217; uh?', 'bp-groups-taxo' );
 
 		if ( ! bp_current_user_can( 'bp_moderate' ) ) {
@@ -296,7 +298,9 @@ class BP_Groups_Tag_Admin {
 					wp_localize_script( 'bp_groups_tag_admin_js', 'BP_Groups_Tag_Admin', array(
 						'edit_action' => $redirect_to,
 					) );
-					break;
+
+					require_once( ABSPATH . 'wp-admin/term.php' );
+					exit;
 
 				case 'editedtag':
 					$tag_ID = (int) $_POST['tag_ID'];
@@ -335,7 +339,6 @@ class BP_Groups_Tag_Admin {
 			) );
 		}
 
-		global $wp_http_referer;
 		require_once( ABSPATH . 'wp-admin/edit-tags.php' );
 		exit();
 	}
