@@ -12,7 +12,7 @@
  * Plugin Name:       BP Groups Taxo
  * Plugin URI:        http://imathi.eu/2014/06/02/bp-groups-taxo/
  * Description:       Use WordPress built-in taxonomy to add tags to BuddyPress groups
- * Version:           1.0.0-beta2
+ * Version:           1.0.0-beta3
  * Author:            imath
  * Author URI:        http://imathi.eu
  * Text Domain:       bp-groups-taxo
@@ -114,7 +114,7 @@ class BP_Groups_Taxo_Loader {
 	 */
 	private function setup_globals() {
 		/** BP Groups Taxo globals ********************************************/
-		$this->version                = '1.0.0-beta2';
+		$this->version                = '1.0.0-beta3';
 		$this->domain                 = 'bp-groups-taxo';
 		$this->file                   = __FILE__;
 		$this->basename               = plugin_basename( $this->file );
