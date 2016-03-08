@@ -151,11 +151,13 @@ class BP_Groups_Tag_Admin {
 		$post_type = 'bp_group';
 
 		// Set needed properties
-		$wp_post_types[ $post_type ]               = new stdClass;
-		$wp_post_types[ $post_type ]->show_ui      = false;
-		$wp_post_types[ $post_type ]->labels       = new stdClass;
-		$wp_post_types[ $post_type ]->labels->name = __( 'Groups', 'bp-groups-taxo' );
-		$wp_post_types[ $post_type ]->name         = $post_type;
+		$wp_post_types[ $post_type ]                    = new stdClass;
+		$wp_post_types[ $post_type ]->show_ui           = true;
+		$wp_post_types[ $post_type ]->show_in_menu      = false;
+		$wp_post_types[ $post_type ]->show_admin_column = false;
+		$wp_post_types[ $post_type ]->labels            = new stdClass;
+		$wp_post_types[ $post_type ]->labels->name      = __( 'Groups', 'bp-groups-taxo' );
+		$wp_post_types[ $post_type ]->name              = $post_type;
 	}
 
 	/**
