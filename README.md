@@ -11,6 +11,5 @@ For a detailed description see this personal [blog post](http://imathi.eu/2014/0
 Required Configuration
 ----------------------
 
-+ Built in WordPress 3.9.1
++ Requires WordPress 4.4
 + Requires at least BuddyPress 2.0.1
-+ Tested up to WordPress 4.1-beta2 & BuddyPress 2.2-alpha
