@@ -50,7 +50,10 @@ class BP_Groups_Taxo_Loader {
 	 *
 	 * @var      string
 	 */
-	public static $bp_version_required = '2.5.0';
+	public static $required_version = array(
+		'wp' => 4.5,
+		'bp' => 2.5,
+	) ;
 
 	/**
 	 * Version which fixed the ticket (#4017)
@@ -132,7 +135,7 @@ class BP_Groups_Taxo_Loader {
 	}
 
 	/**
-	 * Checks BuddyPress version
+	 * Checks BuddyPress & WordPress versions
 	 *
 	 * @package BP Groups Taxo
 	 * @access public
@@ -144,7 +147,16 @@ class BP_Groups_Taxo_Loader {
 			return false;
 		}
 
-		$return = version_compare( BP_VERSION, self::$bp_version_required, '>=' );
+		$return = version_compare( BP_VERSION, self::$required_version['bp'], '>=' );
+
+		$this->wp_version = 0;
+		if ( isset( $GLOBALS['wp_version'] ) ) {
+			$this->wp_version = $GLOBALS['wp_version'];
+		}
+
+		if ( $return ) {
+			$return = ! empty( $this->wp_version ) && version_compare( $this->wp_version, self::$required_version['wp'], '>=' );
+		}
 
 		if ( ! empty( self::$bp_version_fixed ) && version_compare( BP_VERSION, self::$bp_version_fixed, '>=' ) ) {
 			$return = false;
@@ -325,7 +337,7 @@ class BP_Groups_Taxo_Loader {
 		$warnings = array();
 
 		if ( ! $this->version_check() ) {
-			$warnings[] = sprintf( __( 'BP Groups Taxo requires at least version %s of BuddyPress.', 'bp-groups-taxo' ), self::$bp_version_required );
+			$warnings[] = sprintf( __( 'BP Groups Taxo requires at least version %1$s of BuddyPress and version %2$s of WordPress.', 'bp-groups-taxo' ), self::$required_version['bp'], self::$required_version['wp'] );
 		}
 
 		if ( ! bp_core_do_network_admin() && ! $this->root_blog_check() ) {
