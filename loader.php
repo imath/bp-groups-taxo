@@ -12,7 +12,7 @@
  * Plugin Name:       BP Groups Taxo
  * Plugin URI:        http://imathi.eu/2014/06/02/bp-groups-taxo/
  * Description:       Use WordPress built-in taxonomy to add tags to BuddyPress groups
- * Version:           1.0.0-beta3
+ * Version:           1.0.0-beta4
  * Author:            imath
  * Author URI:        http://imathi.eu
  * Text Domain:       bp-groups-taxo
@@ -50,7 +50,10 @@ class BP_Groups_Taxo_Loader {
 	 *
 	 * @var      string
 	 */
-	public static $bp_version_required = '2.0';
+	public static $required_version = array(
+		'wp' => 4.5,
+		'bp' => 2.5,
+	) ;
 
 	/**
 	 * Version which fixed the ticket (#4017)
@@ -114,7 +117,7 @@ class BP_Groups_Taxo_Loader {
 	 */
 	private function setup_globals() {
 		/** BP Groups Taxo globals ********************************************/
-		$this->version                = '1.0.0-beta3';
+		$this->version                = '1.0.0-beta4';
 		$this->domain                 = 'bp-groups-taxo';
 		$this->file                   = __FILE__;
 		$this->basename               = plugin_basename( $this->file );
@@ -132,7 +135,7 @@ class BP_Groups_Taxo_Loader {
 	}
 
 	/**
-	 * Checks BuddyPress version
+	 * Checks BuddyPress & WordPress versions
 	 *
 	 * @package BP Groups Taxo
 	 * @access public
@@ -144,7 +147,16 @@ class BP_Groups_Taxo_Loader {
 			return false;
 		}
 
-		$return = version_compare( BP_VERSION, self::$bp_version_required, '>=' );
+		$return = version_compare( BP_VERSION, self::$required_version['bp'], '>=' );
+
+		$this->wp_version = 0;
+		if ( isset( $GLOBALS['wp_version'] ) ) {
+			$this->wp_version = $GLOBALS['wp_version'];
+		}
+
+		if ( $return ) {
+			$return = ! empty( $this->wp_version ) && version_compare( $this->wp_version, self::$required_version['wp'], '>=' );
+		}
 
 		if ( ! empty( self::$bp_version_fixed ) && version_compare( BP_VERSION, self::$bp_version_fixed, '>=' ) ) {
 			$return = false;
@@ -287,13 +299,13 @@ class BP_Groups_Taxo_Loader {
 
 	/**
 	 * Allow people to edit some params
-	 * 
+	 *
 	 * @package BP Groups Taxo
 	 * @since 1.0.0
-	 * 
+	 *
 	 * @uses apply_filters() call 'bp_group_tags_params' to override defaults with customs
 	 * @uses bp_parse_args()
-	 */ 
+	 */
 	public function set_params() {
 		$customs = apply_filters( 'bp_group_tags_params', array() );
 
@@ -325,7 +337,7 @@ class BP_Groups_Taxo_Loader {
 		$warnings = array();
 
 		if ( ! $this->version_check() ) {
-			$warnings[] = sprintf( __( 'BP Groups Taxo requires at least version %s of BuddyPress.', 'bp-groups-taxo' ), self::$bp_version_required );
+			$warnings[] = sprintf( __( 'BP Groups Taxo requires at least version %1$s of BuddyPress and version %2$s of WordPress.', 'bp-groups-taxo' ), self::$required_version['bp'], self::$required_version['wp'] );
 		}
 
 		if ( ! bp_core_do_network_admin() && ! $this->root_blog_check() ) {
