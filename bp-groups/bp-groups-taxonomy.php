@@ -361,7 +361,7 @@ class BP_Groups_Terms {
 	 * @uses self::get_object_terms()
 	 * @uses self::get_term_link()
 	 */
-	public static function get_the_term_list( $group_id, $taxonomy = 'bp_group_tags', $before = '', $sep = '', $after = '', $description = 0 ) {
+	public static function get_the_term_list( $group_id, $taxonomy = 'bp_group_tags', $before = '', $sep = '', $after = '', $description = 0, $admin_link = '' ) {
 
 		$terms = self::get_object_terms( $group_id, $taxonomy );
 
@@ -377,7 +377,12 @@ class BP_Groups_Terms {
 			// make sure to reset at each pass
 			$term_link = array();
 
-			$link = self::get_term_link( $term, $taxonomy );
+			if ( empty( $admin_link ) ) {
+				$link = self::get_term_link( $term, $taxonomy );
+			} else {
+				$link = add_query_arg( 'tag', $term->slug, $admin_link );
+			}
+
 
 			if ( is_wp_error( $link ) ) {
 				return $link;
