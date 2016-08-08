@@ -199,7 +199,7 @@ class BP_Groups_Tag {
 			 * BP_Groups_Group::get uses the comma syntax for table joins
 			 * meaning we need to do some parsing to adjust..
 			 */
-			$inner_joins = explode( 'INNER JOIN', $clauses['join'] );
+			$inner_joins = explode( 'LEFT JOIN', $clauses['join'] );
 
 			foreach( $inner_joins as $key => $part ) {
 				preg_match( '/(.*) ON/', $part, $matches_a );
