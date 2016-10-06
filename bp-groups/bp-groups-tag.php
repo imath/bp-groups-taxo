@@ -73,7 +73,7 @@ class BP_Groups_Tag {
 		add_action( 'groups_delete_group',                         array( $this, 'remove_relationships'     ), 1 );
 
 		// Filters
-		add_filter( 'bp_ajax_querystring',                      array( $this, 'ajax_querystring'           ), 10, 2 );
+		add_filter( 'bp_before_has_groups_parse_args',          array( $this, 'parse_groups_query'         ), 10, 1 );
 		add_filter( 'bp_groups_get_paged_groups_sql',           array( $this, 'parse_select'               ), 10, 3 );
 		add_filter( 'bp_groups_get_total_groups_sql',           array( $this, 'parse_total'                ), 10, 3 );
 		add_filter( 'bp_get_total_group_count',                 array( $this, 'total_group_count'          ), 10, 1 );
@@ -113,16 +113,25 @@ class BP_Groups_Tag {
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
 	 */
-	public function ajax_querystring( $qs = '', $object = '' ) {
-		if ( empty( $object ) || 'groups' != $object ) {
-			return $qs;
+	public function parse_groups_query( $args = '' ) {
+		// Filter Groups by Tag in the Groups Administration screen.
+		if ( is_admin() ) {
+			$current_screen = get_current_screen();
+
+			if ( ! empty( $current_screen->id ) && false !== strpos( $current_screen->id, 'bp-groups' ) && ! empty( $_GET['tag'] ) ) {
+				$slug = $_GET['tag'];
+			}
+
+		// Filter Groups by Tag in the Groups Directory.
+		} elseif ( bp_is_groups_component() && bp_is_current_action( 'tag' ) ) {
+			$slug = bp_action_variable( 0 );
 		}
 
-		if ( bp_is_groups_component() && bp_is_current_action( 'tag' ) ) {
-			$this->term = BP_Groups_Terms::get_term_by( 'slug', bp_action_variable( 0 ) );
+		if ( ! empty( $slug ) ) {
+			$this->term = BP_Groups_Terms::get_term_by( 'slug', $slug );
 		}
 
-		return $qs;
+		return $args;
 	}
 
 	/**
@@ -199,7 +208,7 @@ class BP_Groups_Tag {
 			 * BP_Groups_Group::get uses the comma syntax for table joins
 			 * meaning we need to do some parsing to adjust..
 			 */
-			$inner_joins = explode( 'INNER JOIN', $clauses['join'] );
+			$inner_joins = explode( 'LEFT JOIN', $clauses['join'] );
 
 			foreach( $inner_joins as $key => $part ) {
 				preg_match( '/(.*) ON/', $part, $matches_a );

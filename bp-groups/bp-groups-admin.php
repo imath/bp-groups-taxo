@@ -333,9 +333,10 @@ class BP_Groups_Tag_Admin {
 		} else {
 			wp_enqueue_script( 'bp_groups_tag_admin_js', bp_groups_taxo_loader()->plugin_js . 'admin.js', array( 'jquery' ), bp_groups_taxo_loader()->version, true );
 			wp_localize_script( 'bp_groups_tag_admin_js', 'BP_Groups_Tag_Admin', array(
-				'edit_action' => $redirect_to,
-				'ajax_screen' => 'edit-' . $taxonomy,
-				'search_page' => 'bp-group-tags',
+				'edit_action'     => $redirect_to,
+				'ajax_screen'     => 'edit-' . $taxonomy,
+				'search_page'     => 'bp-group-tags',
+				'count_base_link' => esc_url_raw( add_query_arg( 'page', 'bp-groups', bp_get_admin_url( 'admin.php' ) ) ),
 			) );
 		}
 
@@ -371,7 +372,8 @@ class BP_Groups_Tag_Admin {
 		if( 'tag' != $column || empty( $group['id'] ) ) {
 			return;
 		}
-		echo BP_Groups_Terms::get_the_term_list( $group['id'], 'bp_group_tags', '', ', ', '' );
+		
+		echo BP_Groups_Terms::get_the_term_list( $group['id'], 'bp_group_tags', '', ', ', '', 0, add_query_arg( 'page', 'bp-groups', bp_get_admin_url( 'admin.php' ) ) );
 	}
 
 	/**
