@@ -11,5 +11,5 @@ For a detailed description see this personal [blog post](http://imathi.eu/2014/0
 Required Configuration
 ----------------------
 
-+ Requires WordPress 4.5
++ Requires WordPress 4.6
 + Requires at least BuddyPress 2.5.0
