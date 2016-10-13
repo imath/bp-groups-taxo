@@ -117,10 +117,10 @@ class BP_Groups_Tag {
 		// Filter Groups by Tag in the Groups Administration screen.
 		if ( is_admin() ) {
 			$current_screen = get_current_screen();
+		}
 
-			if ( ! empty( $current_screen->id ) && false !== strpos( $current_screen->id, 'bp-groups' ) && ! empty( $_GET['tag'] ) ) {
-				$slug = $_GET['tag'];
-			}
+		if ( ! empty( $current_screen->id ) && false !== strpos( $current_screen->id, 'bp-groups' ) && ! empty( $_GET['tag'] ) ) {
+			$slug = $_GET['tag'];
 
 		// Filter Groups by Tag in the Groups Directory.
 		} elseif ( bp_is_groups_component() && bp_is_current_action( 'tag' ) ) {
@@ -202,31 +202,14 @@ class BP_Groups_Tag {
 				)
 			) );
 
-			$clauses = $tax_query->get_sql( 'g', 'id' );
+			$this->tax_query = $tax_query->get_sql( 'g', 'id' );
 
-			/**
-			 * BP_Groups_Group::get uses the comma syntax for table joins
-			 * meaning we need to do some parsing to adjust..
-			 */
-			$inner_joins = explode( 'LEFT JOIN', $clauses['join'] );
-
-			foreach( $inner_joins as $key => $part ) {
-				preg_match( '/(.*) ON/', $part, $matches_a );
-				if ( ! empty( $matches_a[1] ) ) {
-					$this->tax_query['from'][] = $matches_a[1];
-				}
-				preg_match( '/ON \((.*)\)/', $part, $matches_b );
-				if ( ! empty( $matches_b[1] ) ) {
-					$this->tax_query['where'][] = $matches_b[1];
-				}
-			}
-			$this->tax_query['where'] = array_merge( $this->tax_query['where'], array( str_replace( ' AND ', '', $clauses['where'] ) ) );
-
-			$sql_parts['from'] .= implode( ',', $this->tax_query['from'] ). ', ';
-			$sql_parts['where'] .= ' AND ' . implode( ' AND ', $this->tax_query['where'] );
+			$sql_parts['from']  = sprintf( 'FROM %1$s%2$s', $sql_parts['from'], $this->tax_query['join'] );
+			$sql_parts['where'] = sprintf( 'WHERE %1$s%2$s', $sql_parts['where'], $this->tax_query['where'] );
 
 			$query = join( ' ', (array) $sql_parts );
 		}
+
 		return $query;
 	}
 
@@ -238,13 +221,15 @@ class BP_Groups_Tag {
 	 */
 	public function parse_total( $query = '', $sql_parts = array(), $args = array() ) {
 		if ( ! empty( $this->term ) && ! empty( $this->tax_query ) ) {
-			$sql_parts['select'] .= ', ' . implode( ',', $this->tax_query['from'] );
-			$sql_parts['where'] = array_merge( $sql_parts['where'], $this->tax_query['where'] );
+			$sql = array(
+				'select' => 'SELECT COUNT(DISTINCT g.id)',
+				'from'   => sprintf( 'FROM %1$s%2$s', $sql_parts['from'], $this->tax_query['join'] ),
+				'where'  => sprintf( 'WHERE %1$s%2$s', $sql_parts['where'], $this->tax_query['where'] ),
+			);
 
-			if ( ! empty( $sql_parts['where'] ) ) {
-				$query = $sql_parts['select'] . " WHERE " . join( ' AND ', (array) $sql_parts['where'] );
-			}
+			$query = join( ' ', $sql );
 		}
+
 		return $query;
 	}
 
