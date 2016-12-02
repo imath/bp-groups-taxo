@@ -20,14 +20,19 @@
 
 	if ( $( '.wp-list-table .column-posts a' ).length ) {
 		$.each( $( '.wp-list-table td.column-posts a' ), function( i, link ) {
-			var found = $( link ).prop( 'href' ).split( 'term=' )[1];
-			var tag = null;
+			var href = $( link ).prop( 'href' ),
+				found = href.split( BP_Groups_Tag_Admin.taxonomy + '=' )[1],
+				tag = null;
+
+			if ( !found ) {
+				found = href.split( 'term=' )[1];
+			}
 
 			if ( found ) {
 				tag = decodeURIComponent( found.split('&')[0] );
+				$( link ).prop( 'href', BP_Groups_Tag_Admin.count_base_link + '&' + BP_Groups_Tag_Admin.taxonomy + '=' + tag );
 			}
 
-			$( link ).prop( 'href', BP_Groups_Tag_Admin.count_base_link + '&tag=' + tag );
 		} );
 	}
 

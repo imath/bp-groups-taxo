@@ -96,7 +96,7 @@ body.toplevel_page_bp-groups #bp_group_tags .inside input[type="checkbox"] {
 
 body.edit-details #buddypress .inside span.tag-cb,
 body.group-details #buddypress .inside span.tag-cb,
-body.toplevel_page_bp-groups #bp_group_tags .inside span.tag-cb {
+body.toplevel_page_bp-groups [id^=bp_group_taxo] .inside span.tag-cb {
 	display:inline-block;
 	margin:0 8px 0 0;
 	padding:5px;

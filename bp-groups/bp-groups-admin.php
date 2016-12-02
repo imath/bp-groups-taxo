@@ -55,8 +55,8 @@ class BP_Groups_Tag_Admin {
 		add_filter( 'get_edit_term_link',                      array( $this, 'edit_term_link'  ), 10, 4 );
 		add_filter( 'bp_group_tags_row_actions',               array( $this, 'tags_row_action' ), 10, 2 );
 
-		add_filter( 'bp_groups_list_table_get_columns',        array( $this, 'add_tag_column'  ), 10, 1 );
-		add_filter( 'bp_groups_admin_get_group_custom_column', array( $this, 'fill_tag_column' ), 10, 3 );
+		add_filter( 'bp_groups_list_table_get_columns',        array( $this, 'add_tax_columns'  ), 10, 1 );
+		add_filter( 'bp_groups_admin_get_group_custom_column', array( $this, 'fill_tax_columns' ), 10, 3 );
 	}
 
 	/**
@@ -92,19 +92,27 @@ class BP_Groups_Tag_Admin {
 	 * @since BP Groups Taxo (1.0.0)
 	 */
 	public function bp_groups_admin_submenu() {
-		$this->admin_screen = add_submenu_page(
-			'bp-groups',
-			_x( 'Group Tags', 'admin page title', 'bp-groups-taxo' ),
-			_x( 'Group Tags', 'admin menu title', 'bp-groups-taxo' ),
-			'bp_moderate',
-			'bp-group-tags',
-			array( $this, 'admin_tags' )
-		);
 
-		add_action( "load-{$this->admin_screen}", array( $this, 'admin_tags_load' ) );
+		foreach ( BP_Groups_Terms::$taxonomies as $taxonomy ) {
+			$tax = get_taxonomy( $taxonomy );
+			$admin_screen = add_submenu_page(
+				'bp-groups',
+				$tax->labels->name,
+				$tax->labels->name,
+				'bp_moderate',
+				$tax->name,
+				array( $this, 'admin_tags' )
+			);
+			$this->admin_pages[] = $tax->name;
 
-		if ( is_network_admin() ) {
-			$this->admin_screen .= '-network';
+			add_action( "load-$admin_screen", array( $this, 'admin_tags_load' ) );
+
+			$this->admin_screens[$admin_screen] = $taxonomy;
+			/*
+				TODO: make this work for network installs
+			if ( is_network_admin() ) {
+				$this->admin_screens[$admin_screen] .= '-network';
+			}*/
 		}
 	}
 
@@ -119,18 +127,20 @@ class BP_Groups_Tag_Admin {
 	function set_current_screen( $current_screen = OBJECT ) {
 		global $page_hook;
 
-		if ( empty( $this->admin_screen ) || false === strpos( $this->admin_screen, $current_screen->id ) ) {
+		if ( empty( $this->admin_screens ) || ! isset( $this->admin_screens[$current_screen->id] ) ) {
 			return;
 		}
 
+		/*
+		TODO: Is this needed?
 		if ( $current_screen->id !== $this->admin_screen && is_null( $page_hook ) ) {
 			$current_screen->id   = $this->admin_screen;
 			$current_screen->base = $this->admin_screen;
 			$page_hook            = $this->admin_screen;
-		}
+		}*/
 
 		$current_screen->post_type = 'bp_group';
-		$current_screen->taxonomy  = 'bp_group_tags';
+		$current_screen->taxonomy  = $this->admin_screens[$current_screen->id];
 	}
 
 	/**
@@ -144,7 +154,7 @@ class BP_Groups_Tag_Admin {
 	function register_post_type() {
 		global $wp_post_types;
 
-		if ( empty( $_GET['page'] ) || 'bp-group-tags' != $_GET['page'] ) {
+		if ( empty( $_GET['page'] ) || ! in_array( $_GET['page'], $this->admin_pages ) ) {
 			return;
 		}
 
@@ -214,7 +224,7 @@ class BP_Groups_Tag_Admin {
 	 * @global $wp_post_types
 	 */
 	public function admin_tags_load() {
-		global $wp_http_referer;
+		global $wp_http_referer, $page_hook;
 
 		$cheating = __( 'Cheatin&#8217; uh?', 'bp-groups-taxo' );
 
@@ -223,9 +233,9 @@ class BP_Groups_Tag_Admin {
 		}
 
 		$post_type = 'bp_group';
-		$taxnow    = $taxonomy = 'bp_group_tags';
+		$taxnow    = $taxonomy = $this->admin_screens[$page_hook];
 
-		$redirect_to = add_query_arg( 'page', 'bp-group-tags', bp_get_admin_url( 'admin.php' ) );
+		$redirect_to = add_query_arg( 'page', $taxonomy, bp_get_admin_url( 'admin.php' ) );
 
 		// Filter the updated messages
 		add_filter( 'term_updated_messages', array( $this, 'admin_updated_message' ), 10, 1 );
@@ -299,7 +309,7 @@ class BP_Groups_Tag_Admin {
 						'edit_action' => $redirect_to,
 					) );
 
-					require_once( ABSPATH . 'wp-admin/term.php' );
+					require_once( ABSPATH . 'wp-admin/edit-tags.php' );
 					exit;
 
 				case 'editedtag':
@@ -335,7 +345,8 @@ class BP_Groups_Tag_Admin {
 			wp_localize_script( 'bp_groups_tag_admin_js', 'BP_Groups_Tag_Admin', array(
 				'edit_action'     => $redirect_to,
 				'ajax_screen'     => 'edit-' . $taxonomy,
-				'search_page'     => 'bp-group-tags',
+				'search_page'     => $taxonomy,
+				'taxonomy'		  => $taxonomy,
 				'count_base_link' => esc_url_raw( add_query_arg( 'page', 'bp-groups', bp_get_admin_url( 'admin.php' ) ) ),
 			) );
 		}
@@ -358,8 +369,12 @@ class BP_Groups_Tag_Admin {
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
 	 */
-	public function add_tag_column( $columns ) {
-		return array_merge( $columns, array( 'tag' => __( 'Group Tags', 'bp-groups-taxo' ) ) );
+	public function add_tax_columns( $columns ) {
+		foreach ( BP_Groups_Terms::$taxonomies as $taxonomy ) {
+			$tax = get_taxonomy( $taxonomy );
+			$columns[$taxonomy] = $tax->labels->name;
+		}
+		return $columns;
 	}
 
 	/**
@@ -368,12 +383,12 @@ class BP_Groups_Tag_Admin {
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
 	 */
-	public function fill_tag_column( $content, $column, $group ) {
-		if( 'tag' != $column || empty( $group['id'] ) ) {
+	public function fill_tax_columns( $content, $column, $group ) {
+		if( ! in_array( $column, BP_Groups_Terms::$taxonomies ) || empty( $group['id'] ) ) {
 			return;
 		}
-		
-		echo BP_Groups_Terms::get_the_term_list( $group['id'], 'bp_group_tags', '', ', ', '', 0, add_query_arg( 'page', 'bp-groups', bp_get_admin_url( 'admin.php' ) ) );
+
+		echo BP_Groups_Terms::get_the_term_list( $group['id'], $column, '', ', ', '', 0, add_query_arg( 'page', 'bp-groups', bp_get_admin_url( 'admin.php' ) ) );
 	}
 
 	/**
@@ -384,14 +399,18 @@ class BP_Groups_Tag_Admin {
 	 * @since BP Groups Taxo (1.0.0)
 	 */
 	public function group_metabox() {
-		add_meta_box(
-			'bp_group_tags',
-			_x( 'Manage Tags', 'group tags admin edit screen', 'bp-groups-taxo' ),
-			array( $this, 'display_metabox' ),
-			get_current_screen()->id,
-			'side',
-			'core'
-		);
+		foreach ( BP_Groups_Terms::$taxonomies as $taxonomy ) {
+			$tax = get_taxonomy( $taxonomy );
+			add_meta_box(
+				"bp_group_taxo_$taxonomy",
+				sprintf( _x( 'Manage %s', 'group tags admin edit screen', 'bp-groups-taxo' ), $tax->labels->name ),
+				array( $this, 'display_metabox' ),
+				get_current_screen()->id,
+				'side',
+				'core',
+				array( 'taxonomy' => $taxonomy )
+			);
+		}
 	}
 
 	/**
@@ -402,12 +421,12 @@ class BP_Groups_Tag_Admin {
 	 *
 	 * @uses BP_Groups_Tag::tag_editor() to output the tag editor
 	 */
-	public function display_metabox( $item = false ) {
-		if ( empty( $item->id ) ) {
+	public function display_metabox( $item = false, $metabox = null ) {
+		if ( empty( $item->id ) || empty( $metabox ) || ! isset( $metabox['args']['taxonomy'] ) ) {
 			return;
 		}
 
-		BP_Groups_Tag::tag_editor( $item->id );
+		BP_Groups_Tag::tag_editor( $item->id, $metabox['args']['taxonomy'] );
 	}
 
 	/**
@@ -424,7 +443,9 @@ class BP_Groups_Tag_Admin {
 			return;
 		}
 
-		BP_Groups_Tag::set_group_tags( $group_id );
+		foreach ( BP_Groups_Terms::$taxonomies as $taxonomy ) {
+			BP_Groups_Tag::set_group_tags( $group_id, $taxonomy );
+		}
 	}
 
 	/**
@@ -435,12 +456,12 @@ class BP_Groups_Tag_Admin {
 	 * @since BP Groups Taxo (1.0.0)
 	 */
 	public function edit_term_link( $link = '', $term_id = 0, $taxonomy = '', $object_type = '' ) {
-		if ( empty( $taxonomy ) || 'bp_group_tags' != $taxonomy ) {
+		if ( empty( $taxonomy ) || ! in_array( $taxonomy, BP_Groups_Terms::$taxonomies ) ) {
 			return $link;
 		}
 
 		$query_args = array(
-			'page'   => 'bp-group-tags',
+			'page'   => $taxonomy,
 			'action' => 'edit',
 			'tag_ID' => $term_id,
 		);
