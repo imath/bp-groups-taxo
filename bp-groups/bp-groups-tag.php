@@ -135,7 +135,8 @@ class BP_Groups_Tag {
 			$current_taxonomy = array_search( $current_action, BP_Groups_Terms::get_taxonomy_slugs() );
 
 			if ( $current_taxonomy ) {
-				$slug = bp_action_variable( 0 );
+				$action_variables = bp_action_variables();
+				$slug = array_pop( $action_variables );
 			}
 		}
 
@@ -162,7 +163,9 @@ class BP_Groups_Tag {
 		if ( bp_is_groups_component() && $current_taxonomy ) {
 
 			$this->taxonomy = $current_taxonomy;
-			$this->term = BP_Groups_Terms::get_term_by( 'slug', bp_action_variable( 0 ), $current_taxonomy );
+			$action_variables = bp_action_variables();
+			$slug = array_pop( $action_variables );
+			$this->term = BP_Groups_Terms::get_term_by( 'slug', $slug, $current_taxonomy );
 
 			if ( empty( $this->term ) ) {
 				return;
