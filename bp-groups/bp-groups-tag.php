@@ -389,7 +389,7 @@ class BP_Groups_Tag {
 			$tag_links = BP_Groups_Terms::get_the_term_list( $group_id, $taxonomy, '<li>', '</li><li>', '</li>', bp_groups_taxo_loader()->params['taglink_description'] );
 
 			if ( empty( $tag_links ) ) {
-				return;
+				continue;
 			}
 
 			$tag_list  = '<ul class="group-tags">';
