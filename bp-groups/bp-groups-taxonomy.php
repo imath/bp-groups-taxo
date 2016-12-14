@@ -361,7 +361,8 @@ class BP_Groups_Terms {
 		$tax_slug = $tax->rewrite['slug'];
 
 		if ( strpos( $tax_slug, $group_slug ) === FALSE ) {
-			$return = str_replace( $tax_slug, "$group_slug/$tax_slug", $return );
+			$from = '/'.preg_quote( $tax_slug, '/').'/';
+			$return =  preg_replace( $from, "$group_slug/$tax_slug", $return, 1);
 		}
 
 		self::reset_tables();
