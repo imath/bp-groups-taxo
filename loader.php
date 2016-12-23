@@ -12,7 +12,7 @@
  * Plugin Name:       BP Groups Taxo
  * Plugin URI:        http://imathi.eu/2014/06/02/bp-groups-taxo/
  * Description:       Use WordPress built-in taxonomy to add tags to BuddyPress groups
- * Version:           1.0.0-beta5
+ * Version:           1.0.0-beta6
  * Author:            imath
  * Author URI:        http://imathi.eu
  * Text Domain:       bp-groups-taxo
@@ -52,7 +52,7 @@ class BP_Groups_Taxo_Loader {
 	 */
 	public static $required_version = array(
 		'wp' => 4.6,
-		'bp' => 2.6,
+		'bp' => 2.7,
 	) ;
 
 	/**
@@ -117,7 +117,7 @@ class BP_Groups_Taxo_Loader {
 	 */
 	private function setup_globals() {
 		/** BP Groups Taxo globals ********************************************/
-		$this->version                = '1.0.0-beta5';
+		$this->version                = '1.0.0-beta6';
 		$this->domain                 = 'bp-groups-taxo';
 		$this->file                   = __FILE__;
 		$this->basename               = plugin_basename( $this->file );
@@ -147,7 +147,8 @@ class BP_Groups_Taxo_Loader {
 			return false;
 		}
 
-		$return = version_compare( BP_VERSION, self::$required_version['bp'], '>=' );
+		$bp_major_version = (float) BP_VERSION;
+		$return = version_compare( $bp_major_version, self::$required_version['bp'], '>=' );
 
 		$this->wp_version = 0;
 		if ( isset( $GLOBALS['wp_version'] ) ) {
@@ -158,7 +159,7 @@ class BP_Groups_Taxo_Loader {
 			$return = ! empty( $this->wp_version ) && version_compare( $this->wp_version, self::$required_version['wp'], '>=' );
 		}
 
-		if ( ! empty( self::$bp_version_fixed ) && version_compare( BP_VERSION, self::$bp_version_fixed, '>=' ) ) {
+		if ( ! empty( self::$bp_version_fixed ) && version_compare( $bp_major_version, self::$bp_version_fixed, '>=' ) ) {
 			$return = false;
 		}
 

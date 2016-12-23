@@ -12,4 +12,4 @@ Required Configuration
 ----------------------
 
 + Requires WordPress 4.6
-+ Requires at least BuddyPress 2.5.0
++ Requires at least BuddyPress 2.7.0
