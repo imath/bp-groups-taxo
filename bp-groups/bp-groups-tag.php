@@ -65,10 +65,10 @@ class BP_Groups_Tag {
 		add_action( $params['directory_hook'],                     array( $this, 'append_tags'              )    );
 		add_action( $params['group_hook'],                         array( $this, 'append_tags'              )    );
 		add_action( 'bp_before_directory_groups_content',          array( $this, 'tag_infos'                )    );
-		add_action( 'bp_after_group_details_creation_step',        array( $this, 'tag_editor'               )    );
-		add_action( 'bp_after_group_details_admin',                array( $this, 'tag_editor'               )    );
-		add_action( 'groups_create_group_step_save_group-details', array( $this, 'set_group_tags'           )    );
-		add_action( 'groups_group_details_edited',                 array( $this, 'set_group_tags'           ), 1 );
+		add_action( 'bp_after_group_details_creation_step',        array( $this, 'add_tag_editors'          )    );
+		add_action( 'bp_after_group_details_admin',                array( $this, 'add_tag_editors'          )    );
+		add_action( 'groups_create_group_step_save_group-details', array( $this, 'set_group_terms'          )    );
+		add_action( 'groups_group_details_edited',                 array( $this, 'set_group_terms'          ), 1 );
 		add_action( 'groups_group_settings_edited',                array( $this, 'group_changed_visibility' ), 1 );
 		add_action( 'groups_delete_group',                         array( $this, 'remove_relationships'     ), 1 );
 
@@ -115,20 +115,34 @@ class BP_Groups_Tag {
 	 */
 	public function parse_groups_query( $args = '' ) {
 		// Filter Groups by Tag in the Groups Administration screen.
+
 		if ( is_admin() ) {
 			$current_screen = get_current_screen();
 		}
 
-		if ( ! empty( $current_screen->id ) && false !== strpos( $current_screen->id, 'bp-groups' ) && ! empty( $_GET['tag'] ) ) {
-			$slug = $_GET['tag'];
+
+		if ( ! empty( $current_screen->id ) && false !== strpos( $current_screen->id, 'bp-groups' ) ) {
+			foreach ( BP_Groups_Terms::$taxonomies as $taxonomy ) {
+				if ( ! empty( $_GET[$taxonomy] ) ) {
+					$current_taxonomy = $taxonomy;
+					 $slug = $_GET[$taxonomy];
+				}
+			}
 
 		// Filter Groups by Tag in the Groups Directory.
-		} elseif ( bp_is_groups_component() && bp_is_current_action( 'tag' ) ) {
-			$slug = bp_action_variable( 0 );
+		} elseif ( bp_is_groups_component() ) {
+			$current_action = bp_current_action();
+			$current_taxonomy = array_search( $current_action, BP_Groups_Terms::get_taxonomy_slugs() );
+
+			if ( $current_taxonomy ) {
+				$action_variables = bp_action_variables();
+				$slug = array_pop( $action_variables );
+			}
 		}
 
 		if ( ! empty( $slug ) ) {
-			$this->term = BP_Groups_Terms::get_term_by( 'slug', $slug );
+			$this->taxonomy = $current_taxonomy;
+			$this->term = BP_Groups_Terms::get_term_by( 'slug', $slug, $current_taxonomy );
 		}
 
 		return $args;
@@ -143,9 +157,15 @@ class BP_Groups_Tag {
 	 * @since BP Groups Taxo (1.0.0)
 	 */
 	public function groups_directory() {
-		if ( bp_is_groups_component() && bp_is_current_action( 'tag' ) ) {
+		$current_action = bp_current_action();
+		$current_taxonomy = array_search( $current_action, BP_Groups_Terms::get_taxonomy_slugs() );
 
-			$this->term = BP_Groups_Terms::get_term_by( 'slug', bp_action_variable( 0 ) );
+		if ( bp_is_groups_component() && $current_taxonomy ) {
+
+			$this->taxonomy = $current_taxonomy;
+			$action_variables = bp_action_variables();
+			$slug = array_pop( $action_variables );
+			$this->term = BP_Groups_Terms::get_term_by( 'slug', $slug, $current_taxonomy );
 
 			if ( empty( $this->term ) ) {
 				return;
@@ -192,11 +212,12 @@ class BP_Groups_Tag {
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
 	 */
-	public function parse_select( $query = '', $sql_parts = array(), $args = array() ) {
-		if ( ! empty( $this->term ) ) {
+	public function parse_select( $query = '', $sql = array(), $args = array() ) {
+		if ( ! empty( $this->term ) && ! empty( $this->taxonomy ) ) {
+
 			$tax_query = new WP_Tax_Query( array(
 				array(
-					'taxonomy' => 'bp_group_tags',
+					'taxonomy' => $this->taxonomy,
 					'terms'    => $this->term->term_id,
 					'field'    => 'term_id',
 				)
@@ -348,17 +369,20 @@ class BP_Groups_Tag {
 			return;
 		}
 
-		$tag_links = BP_Groups_Terms::get_the_term_list( $group_id, 'bp_group_tags', '<li>', '</li><li>', '</li>', bp_groups_taxo_loader()->params['taglink_description'] );
+		foreach ( BP_Groups_Terms::$taxonomies as $taxonomy ) {
 
-		if ( empty( $tag_links ) ) {
-			return;
+			$tag_links = BP_Groups_Terms::get_the_term_list( $group_id, $taxonomy, '<li>', '</li><li>', '</li>', bp_groups_taxo_loader()->params['taglink_description'] );
+
+			if ( empty( $tag_links ) ) {
+				continue;
+			}
+
+			$tag_list  = '<ul class="group-tags">';
+			$tag_list .= $tag_links;
+			$tag_list .= '</ul>';
+
+			echo apply_filters( "bp_groups_taxo_append_$taxonomy", $tag_list, $group_id );
 		}
-
-		$tag_list  = '<ul class="group-tags">';
-		$tag_list .= $tag_links;
-		$tag_list .= '</ul>';
-
-		echo apply_filters( 'bp_groups_taxo_append_tags', $tag_list, $group_id );
 	}
 
 	/**
@@ -411,6 +435,13 @@ class BP_Groups_Tag {
 		return sprintf( _n( '%d Group', '%d Groups', $count, 'bp-groups-taxo' ), $count );
 	}
 
+
+	public static function add_tag_editors( $group_id = 0 ) {
+		foreach ( BP_Groups_Terms::$taxonomies as $taxonomy ) {
+			self::tag_editor( $group_id, $taxonomy );
+		}
+	}
+
 	/**
 	 * Build a form to choose tags for the current group
 	 *
@@ -418,29 +449,31 @@ class BP_Groups_Tag {
 	 * @since BP Groups Taxo (1.0.0)
 	 * @static
 	 */
-	public static function tag_editor( $group_id = 0 ) {
+	public static function tag_editor( $group_id = 0, $taxonomy = 'bp_group_tags' ) {
 		if ( empty( $group_id ) ) {
 			$group_id = bp_get_new_group_id() ? bp_get_new_group_id() : bp_get_current_group_id();
 		}
 
-		$group_terms = BP_Groups_Terms::get_object_terms( $group_id );
+		$group_terms = BP_Groups_Terms::get_object_terms( $group_id, $taxonomy );
 		$group_term_ids = array();
 
 		if ( ! empty( $group_terms ) ) {
 			$group_term_ids = wp_list_pluck( $group_terms, 'term_id' );
 		}
 
-		$terms = BP_Groups_Terms::get_terms( 'bp_group_tags', array(
+		$terms = BP_Groups_Terms::get_terms( $taxonomy, array(
 			'hide_empty' => 0,
 			'fields'     => 'id=>name'
 		) );
+
+		$tax = get_taxonomy( $taxonomy );
 
 		$output = '';
 
 		if ( empty( $terms ) ) {
 			// Display some feedbacks to admin so that they set tags more easily
 			if ( is_admin() ) {
-				$admin_tags_link = add_query_arg( 'page', 'bp-group-tags', bp_get_admin_url( 'admin.php' ) );
+				$admin_tags_link = add_query_arg( 'page', $taxonomy, bp_get_admin_url( 'admin.php' ) );
 				?>
 				<p>
 					<?php printf(
@@ -455,15 +488,15 @@ class BP_Groups_Tag {
 		}
 
 		if ( ! is_admin() ) {
-			$output =  '<label for="group-tags">' . esc_html__( 'Select the tag(s) of your choice.', 'bp-groups-taxo' ) . '</label>';
+			$output =  '<label for="group-tags">' . sprintf( esc_html__( 'Select the %s of your choice.', 'bp-groups-taxo' ), $tax->labels->name) . '</label>';
 		}
 
 		foreach ( $terms as $term_id => $term_name ) {
-			$output .= '<span class="tag-cb"><input type="checkbox" name="_group_tags[]" value="' . $term_id . '" '. checked( in_array( $term_id, $group_term_ids ), true, false ) .'>' . esc_html( $term_name ) . '</span>';
+			$output .= '<span class="tag-cb"><input type="checkbox" name="_' . $taxonomy . '[]" value="' . $term_id . '" '. checked( in_array( $term_id, $group_term_ids ), true, false ) .'>' . esc_html( $term_name ) . '</span>';
 		}
 
 		if ( ! empty( $group_term_ids ) ) {
-			$output .= '<input type="hidden" name="_group_previous_tags" value="' . implode( ',', $group_term_ids ) .'">';
+			$output .= '<input type="hidden" name="_group_previous_' . $taxonomy . '" value="' . implode( ',', $group_term_ids ) .'">';
 		}
 
 		if ( ! is_admin() ) {
@@ -498,6 +531,13 @@ class BP_Groups_Tag {
 		return $retval;
 	}
 
+
+	public static function set_group_terms( $group_id = 0 ) {
+		foreach ( BP_Groups_Terms::$taxonomies as $taxonomy ) {
+			self::set_group_tags( $group_id, $taxonomy );
+		}
+	}
+
 	/**
 	 * Set group tags
 	 *
@@ -505,7 +545,7 @@ class BP_Groups_Tag {
 	 * @since BP Groups Taxo (1.0.0)
 	 * @static
 	 */
-	public static function set_group_tags( $group_id = 0 ) {
+	public static function set_group_tags( $group_id = 0, $taxonomy = 'bp_group_tags' ) {
 		if ( empty( $group_id ) ) {
 			$group_id = bp_get_new_group_id() ? bp_get_new_group_id() : bp_get_current_group_id();
 		}
@@ -519,12 +559,12 @@ class BP_Groups_Tag {
 		$term_ids          = array();
 		$previous_term_ids = array();
 
-		if ( ! empty( $_POST['_group_tags'] ) ) {
-			$term_ids = wp_parse_id_list( $_POST['_group_tags'] );
+		if ( ! empty( $_POST["_$taxonomy"] ) ) {
+			$term_ids = wp_parse_id_list( $_POST["_$taxonomy"] );
 		}
 
-		if ( ! empty( $_POST['_group_previous_tags'] ) ) {
-			$previous_term_ids = wp_parse_id_list( $_POST['_group_previous_tags'] );
+		if ( ! empty( $_POST["_group_previous_$taxonomy"] ) ) {
+			$previous_term_ids = wp_parse_id_list( $_POST["_group_previous_$taxonomy"] );
 		}
 
 		if ( empty( $term_ids ) && empty( $previous_term_ids ) ) {
@@ -533,10 +573,10 @@ class BP_Groups_Tag {
 
 		if ( empty( $term_ids ) && ! empty( $previous_term_ids ) ) {
 			// Remove terms
-			return BP_Groups_Terms::remove_object_terms( $group_id, $previous_term_ids );
+			return BP_Groups_Terms::remove_object_terms( $group_id, $previous_term_ids, $taxonomy );
 		} else if ( $term_ids != $previous_term_ids ) {
 			// Set terms
-			return BP_Groups_Terms::set_object_terms( $group_id, $term_ids );
+			return BP_Groups_Terms::set_object_terms( $group_id, $term_ids, $taxonomy );
 		}
 	}
 
@@ -551,12 +591,14 @@ class BP_Groups_Tag {
 			$group_id = bp_get_current_group_id();
 		}
 
-		// We need to update term count in case an hidden group changed its visibility and vice versa
-		$group_terms = BP_Groups_Terms::get_object_terms( $group_id );
-		$terms = wp_list_pluck( $group_terms, 'term_id');
+		foreach ( BP_Groups_Terms::$taxonomies as $taxonomy ) {
+			// We need to update term count in case an hidden group changed its visibility and vice versa
+			$group_terms = BP_Groups_Terms::get_object_terms( $group_id, $taxonomy );
+			$terms = wp_list_pluck( $group_terms, 'term_id');
 
-		if ( ! empty( $terms ) ) {
-			BP_Groups_Terms::update_term_count( $terms );
+			if ( ! empty( $terms ) ) {
+				BP_Groups_Terms::update_term_count( $terms, $taxonomy );
+			}
 		}
 	}
 
@@ -569,7 +611,9 @@ class BP_Groups_Tag {
 	 * @since BP Groups Taxo (1.0.0)
 	 */
 	public function remove_relationships( $group_id = 0 ) {
-		BP_Groups_Terms::delete_object_term_relationships( $group_id );
+		foreach ( BP_Groups_Terms::$taxonomies as $taxonomy ) {
+			BP_Groups_Terms::delete_object_term_relationships( $group_id, $taxonomy );
+		}
 	}
 
 	/**

@@ -12,6 +12,7 @@ class BP_Groups_Terms {
 	public static $bp_term_taxonomy = '';
 	public static $bp_term_relationships = '';
 	public static $bp_terms = '';
+	public static $taxonomies = array();
 
 	/**
 	 * Start the class
@@ -48,6 +49,10 @@ class BP_Groups_Terms {
 	 */
 	public function setup_globals() {
 		global $wpdb;
+
+		self::$taxonomies = apply_filters( 'bp_groups_taxo_taxonomies', array(
+			'bp_group_tags',
+		) );
 
 		self::$wp_term_taxonomy      = $wpdb->term_taxonomy;
 		self::$wp_term_relationships = $wpdb->term_relationships;
@@ -346,8 +351,46 @@ class BP_Groups_Terms {
 		global $wpdb;
 		self::set_tables();
 		$return = get_term_link( $term, $taxonomy );
+		$bp = buddypress();
+		$group_slug = bp_get_groups_slug();
+
+		if ( ! empty( $bp->pages->groups->slug ) ) {
+			$group_slug = $bp->pages->groups->slug;
+		}
+		$tax = get_taxonomy( $taxonomy );
+		$tax_slug = $tax->rewrite['slug'];
+
+		if ( strpos( $tax_slug, $group_slug ) === FALSE ) {
+			$from = '/'.preg_quote( $tax_slug, '/').'/';
+			$return =  preg_replace( $from, "$group_slug/$tax_slug", $return, 1);
+		}
+
 		self::reset_tables();
 		return $return;
+	}
+
+	/**
+	 * Get all taxonomie slugs
+	 *
+	 * @access public
+	 * @since BP Groups Taxo (1.0.0)
+	 * @static
+	 *
+	 * @uses get_term_link()
+	 */
+	public static function get_taxonomy_slugs() {
+		$slugs = array();
+		$bp = buddypress();
+		$group_slug = bp_get_groups_slug();
+
+		if ( ! empty( $bp->pages->groups->slug ) ) {
+			$group_slug = $bp->pages->groups->slug;
+		}
+		foreach ( self::$taxonomies as $taxonomy ) {
+			$tax = get_taxonomy( $taxonomy );
+			$slugs[$taxonomy] = str_replace( "$group_slug/", '', $tax->rewrite['slug']);
+		}
+		return $slugs;
 	}
 
 	/**
@@ -380,7 +423,7 @@ class BP_Groups_Terms {
 			if ( empty( $admin_link ) ) {
 				$link = self::get_term_link( $term, $taxonomy );
 			} else {
-				$link = add_query_arg( 'tag', $term->slug, $admin_link );
+				$link = add_query_arg( $taxonomy, $term->slug, $admin_link );
 			}
 
 
