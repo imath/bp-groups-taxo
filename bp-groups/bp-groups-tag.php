@@ -205,7 +205,7 @@ class BP_Groups_Tag {
 			$this->tax_query = $tax_query->get_sql( 'g', 'id' );
 
 			$sql_parts['from']  = sprintf( 'FROM %1$s%2$s', $sql_parts['from'], $this->tax_query['join'] );
-			$sql_parts['where'] = sprintf( 'WHERE %1$s%2$s', $sql_parts['where'], $this->tax_query['where'] );
+			$sql_parts['where'] = sprintf( 'WHERE %1$s%2$s', empty($sql_parts['where']) ? '1=1' : $sql_parts['where'], $this->tax_query['where'] );
 
 			$query = join( ' ', (array) $sql_parts );
 		}
