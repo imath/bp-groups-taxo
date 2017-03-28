@@ -224,7 +224,7 @@ class BP_Groups_Tag {
 			$sql = array(
 				'select' => 'SELECT COUNT(DISTINCT g.id)',
 				'from'   => sprintf( 'FROM %1$s%2$s', $sql_parts['from'], $this->tax_query['join'] ),
-				'where'  => sprintf( 'WHERE %1$s%2$s', $sql_parts['where'], $this->tax_query['where'] ),
+				'where'  => sprintf( 'WHERE %1$s%2$s', empty( $sql_parts['where'] ) ? '1=1' : $sql_parts['where'], $this->tax_query['where'] ),
 			);
 
 			$query = join( ' ', $sql );
