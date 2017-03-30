@@ -187,13 +187,13 @@ class BP_Groups_Tag {
 	}
 
 	/**
-	 * Build a WP_Tax_Query if needed
+	 * Build a WP_Tax_Query.
 	 *
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
 	 */
-	public function parse_select( $query = '', $sql_parts = array(), $args = array() ) {
-		if ( ! empty( $this->term ) ) {
+	public function get_sql_parts( $sql_parts = array() ) {
+		if ( empty( $this->tax_query ) ) {
 			$tax_query = new WP_Tax_Query( array(
 				array(
 					'taxonomy' => 'bp_group_tags',
@@ -203,28 +203,61 @@ class BP_Groups_Tag {
 			) );
 
 			$this->tax_query = $tax_query->get_sql( 'g', 'id' );
+		}
 
-			$sql_parts['from']  = sprintf( 'FROM %1$s%2$s', $sql_parts['from'], $this->tax_query['join'] );
-			$sql_parts['where'] = sprintf( 'WHERE %1$s%2$s', $sql_parts['where'], $this->tax_query['where'] );
+		$where = $this->tax_query['where'];
 
-			$query = join( ' ', (array) $sql_parts );
+		/**
+		 * This can be the case when filtering alphabetically
+		 * or by created date.
+		 */
+		if ( empty( $sql_parts['where'] ) ) {
+			$where_parts = explode( 'AND', $where );
+			
+			if ( count( $where_parts ) > 1 ) {
+				// Remove the first 'AND'
+				array_shift( $where_parts );
+			}
+
+			$where = sprintf( 'WHERE %s', join( 'AND', $where_parts ) );
+		} else {
+			$where = sprintf( 'WHERE %1$s%2$s', $sql_parts['where'], $this->tax_query['where'] );
+		}
+
+		$sql_parts['from']  = sprintf( 'FROM %1$s%2$s', $sql_parts['from'], $this->tax_query['join'] );
+		$sql_parts['where'] = $where;
+
+		return $sql_parts;
+	}
+
+	/**
+	 * Adapt the select query if needed.
+	 *
+	 * @access public
+	 * @since BP Groups Taxo (1.0.0)
+	 */
+	public function parse_select( $query = '', $sql_parts = array(), $args = array() ) {
+		if ( ! empty( $this->term ) ) {
+			$query = join( ' ', $this->get_sql_parts( $sql_parts ) );
 		}
 
 		return $query;
 	}
 
 	/**
-	 * Adjust total sql query
+	 * Adjust total sql query if needed.
 	 *
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
 	 */
 	public function parse_total( $query = '', $sql_parts = array(), $args = array() ) {
 		if ( ! empty( $this->term ) && ! empty( $this->tax_query ) ) {
-			$sql = array(
-				'select' => 'SELECT COUNT(DISTINCT g.id)',
-				'from'   => sprintf( 'FROM %1$s%2$s', $sql_parts['from'], $this->tax_query['join'] ),
-				'where'  => sprintf( 'WHERE %1$s%2$s', $sql_parts['where'], $this->tax_query['where'] ),
+			$sql = array_merge(
+				array( 'select' => 'SELECT COUNT(DISTINCT g.id)' ),
+				array_intersect_key( $this->get_sql_parts( $sql_parts ), array(
+					'from' => true,
+					'where' => true,
+				) )
 			);
 
 			$query = join( ' ', $sql );
@@ -603,4 +636,3 @@ class BP_Groups_Tag {
 endif;
 
 add_action( 'bp_init', array( 'BP_Groups_Tag',   'start'  ), 12 );
-
