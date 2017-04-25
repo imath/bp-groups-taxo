@@ -110,21 +110,31 @@ class BP_Groups_Tag {
 	 * Hook to bp_ajax_querystring to make sure the tag action
 	 * is set.
 	 *
+	 * @param array|string $args Specify taxonomy term slug with group_term
 	 * @access public
 	 * @since BP Groups Taxo (1.0.0)
+	 * @since BP Groups Taxo (1.0.1) Support for group_term in query args
 	 */
 	public function parse_groups_query( $args = '' ) {
-		// Filter Groups by Tag in the Groups Administration screen.
-		if ( is_admin() ) {
-			$current_screen = get_current_screen();
-		}
+		$r = bp_parse_args( $args, array(
+			'group_term'  => null,
+		) );
 
-		if ( ! empty( $current_screen->id ) && false !== strpos( $current_screen->id, 'bp-groups' ) && ! empty( $_GET['tag'] ) ) {
-			$slug = $_GET['tag'];
+		if ( !empty( $r['group_term' ])) {
+			$slug = $r['group_term'];
+		} else {
+			// Filter Groups by Tag in the Groups Administration screen.
+			if ( is_admin() ) {
+				$current_screen = get_current_screen();
+			}
 
-		// Filter Groups by Tag in the Groups Directory.
-		} elseif ( bp_is_groups_component() && bp_is_current_action( 'tag' ) ) {
-			$slug = bp_action_variable( 0 );
+			if ( ! empty( $current_screen->id ) && false !== strpos( $current_screen->id, 'bp-groups' ) && ! empty( $_GET['tag'] ) ) {
+				$slug = $_GET['tag'];
+
+			// Filter Groups by Tag in the Groups Directory.
+			} elseif ( bp_is_groups_component() && bp_is_current_action( 'tag' ) ) {
+				$slug = bp_action_variable( 0 );
+			}
 		}
 
 		if ( ! empty( $slug ) ) {
