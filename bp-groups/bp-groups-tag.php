@@ -116,11 +116,11 @@ class BP_Groups_Tag {
 	 * @since BP Groups Taxo (1.0.1) Support for group_term in query args
 	 */
 	public function parse_groups_query( $args = '' ) {
-		$r = bp_parse_args( $args, array(
+		$r = wp_parse_args( $args, array(
 			'group_term'  => null,
 		) );
 
-		if ( !empty( $r['group_term' ])) {
+		if ( ! empty( $r['group_term' ] ) ) {
 			$slug = $r['group_term'];
 		} else {
 			// Filter Groups by Tag in the Groups Administration screen.
